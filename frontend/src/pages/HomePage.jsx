@@ -1,5 +1,3 @@
-import React from 'react';
-import Navbar from '../components/Navbar';
 import Hero from './components/Hero';
 import ServicesSection from './components/ServicesSection';
 import CoreFeatures from './components/CoreFeatures';
@@ -8,7 +6,6 @@ import HowItWorks from './components/HowItWorks';
 import Testimonials from './components/Testimonials';
 import FAQSection from './components/FAQSection';
 import ReadyToShip from './components/ReadyToShip';
-import Footer from './components/Footer';
 
 const HomePage = () => {
     return (

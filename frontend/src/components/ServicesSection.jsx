@@ -1,124 +1,315 @@
 import React, { useState } from 'react';
-import { ArrowRight, Truck } from 'lucide-react';
-import fullLoadImg from '../assets/full-load.jpeg';
-import partLoadImg from '../assets/part-load.jpeg';
+import { motion } from 'framer-motion';
+import { Truck, Package, Share2, ArrowRight, Zap, Shield, Clock } from 'lucide-react';
 
-const ServicesSection = () => {
-    const [activeTab, setActiveTab] = useState('B2B');
+const Services = () => {
+  const [activeService, setActiveService] = useState(0);
 
-    const tabs = ['B2B', 'B2C', 'Partner'];
+  const services = [
+    {
+      id: 0,
+      title: "Full Load",
+      subtitle: "FTL",
+      icon: Truck,
+      description: "Full Truck Load is best suited for large shipments above 5–6 tons or bulk goods that require a dedicated vehicle. The truck is exclusively assigned to one client, ensuring faster transit, reduced handling, and direct delivery from origin to destination.",
+      benefits: [
+        { icon: Zap, text: "Dedicated Vehicle" },
+        { icon: Clock, text: "Faster Transit" },
+        { icon: Shield, text: "Direct Delivery" }
+      ],
+      gradient: "from-red-600/20 to-red-600/5",
+      borderColor: "border-red-600/30",
+      accentColor: "#D98B94"
+    },
+    {
+      id: 1,
+      title: "Part Load",
+      subtitle: "PTL",
+      icon: Package,
+      description: "Part Truck Load is ideal for shipments typically ranging from 50 kg to 5 tons, where a full truck is not required. Multiple consignments share the same vehicle based on route compatibility, making it a cost-effective option for business shipments.",
+      benefits: [
+        { icon: Zap, text: "Cost-Effective" },
+        { icon: Clock, text: "Flexible Schedule" },
+        { icon: Shield, text: "Route Optimized" }
+      ],
+      gradient: "from-blue-600/20 to-blue-600/5",
+      borderColor: "border-blue-600/30",
+      accentColor: "#4F46E5"
+    },
+    {
+      id: 2,
+      title: "Shared Load",
+      subtitle: "Consolidation",
+      icon: Share2,
+      description: "Shared Load services combine multiple smaller shipments into one vehicle, maximizing space utilization. Perfect for businesses looking to reduce shipping costs while maintaining reliable delivery schedules with eco-friendly solutions.",
+      benefits: [
+        { icon: Zap, text: "Eco-Friendly" },
+        { icon: Clock, text: "Scheduled Routes" },
+        { icon: Shield, text: "Space Efficient" }
+      ],
+      gradient: "from-green-600/20 to-green-600/5",
+      borderColor: "border-green-600/30",
+      accentColor: "#10B981"
+    }
+  ];
 
-    const b2bContent = [
-        {
-            title: "Full Load",
-            image: fullLoadImg,
-            description: "Full Truck Load is best suited for large shipments above 5–6 tons or bulk goods that require a dedicated vehicle. The truck is exclusively assigned to one client, ensuring faster transit, reduced handling, and direct delivery from origin to destination.",
-            estimateColor: "bg-[#D98B94]",
-            bookColor: "bg-black"
-        },
-        {
-            title: "Part Load",
-            image: partLoadImg,
-            description: "Part Truck Load is ideal for shipments typically ranging from 50 kg to 5 tons, where a full truck is not required. Multiple consignments share the same vehicle based on route compatibility, making it a cost-effective option for business shipments.",
-            estimateColor: "bg-[#D98B94]",
-            bookColor: "bg-black"
-        }
-    ];
+  const currentService = services[activeService];
+  const CurrentIcon = currentService.icon;
 
-    return (
-        <section className="py-24 bg-white overflow-hidden">
-            <div className="max-w-[1440px] mx-auto px-6 md:px-10">
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+        delayChildren: 0.3,
+      },
+    },
+  };
 
-                {/* Modern Tab Bar */}
-                <div className="flex items-center justify-between mb-16 p-2 bg-gray-50 rounded-2xl border border-gray-100">
-                    <div className="px-6 py-2">
-                        <span className="text-sm font-black uppercase tracking-[0.3em] italic text-black">Our Service</span>
-                    </div>
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, ease: "easeOut" },
+    },
+  };
 
-                    <div className="flex gap-2">
-                        {tabs.map((tab) => (
-                            <button
-                                key={tab}
-                                onClick={() => setActiveTab(tab)}
-                                className={`px-10 py-2.5 rounded-xl text-sm font-black italic tracking-widest uppercase transition-all duration-300 transform ${activeTab === tab
-                                    ? 'bg-white text-red-600 shadow-sm border border-red-100 scale-105 skew-x-[-6deg]'
-                                    : 'text-gray-400 hover:text-black'
-                                    }`}
-                            >
-                                {tab}
-                            </button>
-                        ))}
-                    </div>
-                    <div className="hidden md:block w-32"></div> {/* Spacer to balance */}
+  return (
+    <section className="w-full py-16 sm:py-20 md:py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white via-gray-50 to-white overflow-hidden">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          className="text-center mb-12 sm:mb-16 md:mb-20"
+        >
+          <motion.div variants={itemVariants} className="inline-flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+            <div className="h-[2px] w-6 sm:w-8 bg-red-600"></div>
+            <span className="text-xs sm:text-sm font-black italic tracking-[0.2em] sm:tracking-[0.3em] uppercase text-red-600">
+              Our Services
+            </span>
+            <div className="h-[2px] w-6 sm:w-8 bg-red-600"></div>
+          </motion.div>
+
+          <motion.h2
+            variants={itemVariants}
+            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black italic text-black mb-3 sm:mb-4 leading-tight"
+          >
+            Choose Your Shipping Solution
+          </motion.h2>
+
+          <motion.p
+            variants={itemVariants}
+            className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto px-2"
+          >
+            Select the perfect logistics service tailored to your shipment size and requirements
+          </motion.p>
+        </motion.div>
+
+        {/* Services Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-12 sm:mb-16 md:mb-20">
+          {services.map((service, index) => {
+            const ServiceIcon = service.icon;
+            const isActive = activeService === index;
+
+            return (
+              <motion.button
+                key={service.id}
+                onClick={() => setActiveService(index)}
+                variants={itemVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-100px" }}
+                whileHover={{ y: -8 }}
+                className={`relative p-6 sm:p-8 rounded-2xl sm:rounded-3xl border-2 transition-all duration-500 text-left group cursor-pointer overflow-hidden ${
+                  isActive
+                    ? `${service.borderColor} bg-gradient-to-br ${service.gradient} shadow-2xl scale-105`
+                    : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-lg"
+                }`}
+              >
+                {/* Animated background gradient */}
+                {isActive && (
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r opacity-5"
+                    initial={{ x: "-100%" }}
+                    animate={{ x: "100%" }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                    style={{
+                      background: `linear-gradient(90deg, transparent, ${service.accentColor}40, transparent)`,
+                    }}
+                  />
+                )}
+
+                <div className="relative z-10">
+                  {/* Icon */}
+                  <motion.div
+                    className={`inline-flex items-center justify-center w-12 sm:w-14 h-12 sm:h-14 rounded-xl sm:rounded-2xl mb-4 sm:mb-6 transition-all duration-300 ${
+                      isActive ? "bg-white shadow-lg" : "bg-gray-100 group-hover:bg-gray-200"
+                    }`}
+                    whileHover={{ rotate: 10, scale: 1.1 }}
+                  >
+                    <ServiceIcon
+                      size={24}
+                      className={`transition-colors duration-300 ${
+                        isActive ? "text-red-600 stroke-[2.5]" : "text-gray-600"
+                      }`}
+                    />
+                  </motion.div>
+
+                  {/* Title */}
+                  <h3 className={`text-lg sm:text-xl md:text-2xl font-black italic mb-1 sm:mb-2 transition-colors duration-300 ${
+                    isActive ? "text-black" : "text-gray-800"
+                  }`}>
+                    {service.title}
+                  </h3>
+
+                  {/* Subtitle */}
+                  <p className={`text-xs sm:text-sm font-bold italic tracking-wider uppercase mb-3 sm:mb-4 transition-colors duration-300 ${
+                    isActive ? "text-red-600" : "text-gray-500"
+                  }`}>
+                    {service.subtitle}
+                  </p>
+
+                  {/* Description */}
+                  {!isActive && (
+                    <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 group-hover:line-clamp-none transition-all">
+                      {service.description.substring(0, 60)}...
+                    </p>
+                  )}
                 </div>
 
-                {/* Content Area - Only B2B has content for now */}
-                {activeTab === 'B2B' ? (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-speed-reveal">
-                        {b2bContent.map((card, index) => (
-                            <div
-                                key={index}
-                                className="group relative bg-white p-12 rounded-[2.5rem] border border-gray-100 transition-all duration-500 hover:shadow-[30px_30px_0_rgba(0,0,0,0.02)] transform hover:translate-y-[-8px] flex flex-col h-full"
-                            >
-                                {/* Speed Accent Line */}
-                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-0 h-1 bg-red-600 transition-all duration-500 group-hover:w-1/2 rounded-full"></div>
-
-                                <div className="flex flex-col items-center text-center h-full">
-                                    <h3 className="text-3xl font-black italic uppercase tracking-tighter mb-4 text-black">
-                                        {card.title}
-                                    </h3>
-
-                                    <div className="relative mb-8 h-16 w-full flex justify-center items-center overflow-hidden">
-                                        <img
-                                            src={card.image}
-                                            alt={card.title}
-                                            className="h-full object-contain transform group-hover:scale-110 group-hover:translate-x-4 transition-all duration-700"
-                                        />
-                                        {/* Motion Trails */}
-                                        <div className="absolute left-[30%] top-1/2 w-12 h-[2px] bg-red-600/20 translate-x-[-100%] opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-500 delay-100"></div>
-                                        <div className="absolute left-[35%] top-[60%] w-8 h-[2px] bg-red-600/10 translate-x-[-100%] opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-500 delay-200"></div>
-                                    </div>
-
-                                    <p className="text-gray-500 font-bold italic leading-relaxed mb-auto max-w-sm">
-                                        {card.description}
-                                    </p>
-
-                                    <div className="flex gap-4 w-full mt-10">
-                                        <button className={`flex-1 ${card.estimateColor} text-white font-black py-4 px-6 rounded-xl italic uppercase tracking-widest text-xs transition-all duration-300 transform hover:skew-x-[-6deg] hover:brightness-105 active:scale-95 shadow-lg shadow-[#D98B94]/20`}>
-                                            Get Estimate
-                                        </button>
-                                        <button className={`flex-1 ${card.bookColor} text-white font-black py-4 px-6 rounded-xl italic uppercase tracking-widest text-xs transition-all duration-300 transform hover:skew-x-[-6deg] hover:bg-gray-800 active:scale-95 shadow-lg shadow-black/10`}>
-                                            Book Now
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="min-h-[400px] flex items-center justify-center border-2 border-dashed border-gray-100 rounded-[2.5rem] italic font-black text-gray-300 uppercase tracking-widest">
-                        Content coming soon for {activeTab}
-                    </div>
+                {/* Hover indicator */}
+                {!isActive && (
+                  <motion.div
+                    className="absolute bottom-4 sm:bottom-6 right-4 sm:right-6 text-gray-400 group-hover:text-red-600 transition-colors"
+                    whileHover={{ x: 4 }}
+                  >
+                    <ArrowRight size={20} />
+                  </motion.div>
                 )}
-            </div>
+              </motion.button>
+            );
+          })}
+        </div>
 
-            <style>{`
-                @keyframes speed-reveal {
-                    from { 
-                        opacity: 0; 
-                        transform: translateX(-30px) skewX(10deg); 
-                    }
-                    to { 
-                        opacity: 1; 
-                        transform: translateX(0) skewX(0); 
-                    }
-                }
-                .animate-speed-reveal {
-                    animation: speed-reveal 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-                }
-            `}</style>
-        </section>
-    );
+        {/* Active Service Detail */}
+        <motion.div
+          key={currentService.id}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="bg-white rounded-2xl sm:rounded-3xl border-2 border-gray-200 overflow-hidden shadow-xl"
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 md:gap-12 p-6 sm:p-8 md:p-12">
+            {/* Left Content */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="flex flex-col justify-center"
+            >
+              {/* Service Header */}
+              <div className="mb-6 sm:mb-8">
+                <motion.div
+                  className="inline-flex items-center gap-2 sm:gap-3 mb-4"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <div className="h-[2px] w-8 sm:w-12 bg-red-600"></div>
+                  <span className="text-xs sm:text-sm font-black italic tracking-widest uppercase text-red-600">
+                    {currentService.subtitle}
+                  </span>
+                </motion.div>
+
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-black italic text-black mb-4 sm:mb-6">
+                  {currentService.title}
+                </h2>
+
+                <p className="text-sm sm:text-base text-gray-600 leading-relaxed max-w-lg">
+                  {currentService.description}
+                </p>
+              </div>
+
+              {/* Benefits */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-8 sm:mb-10">
+                {currentService.benefits.map((benefit, index) => {
+                  const BenefitIcon = benefit.icon;
+                  return (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 + index * 0.1 }}
+                      className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-gray-50 rounded-xl border border-gray-200 hover:border-red-200 hover:bg-red-50/30 transition-all"
+                    >
+                      <BenefitIcon size={20} className="text-red-600 flex-shrink-0" />
+                      <span className="text-xs sm:text-sm font-bold text-gray-700">{benefit.text}</span>
+                    </motion.div>
+                  );
+                })}
+              </div>
+
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                <motion.button
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-6 sm:px-8 py-3 sm:py-4 bg-red-600 text-white font-black italic uppercase tracking-wider rounded-lg sm:rounded-xl text-xs sm:text-sm hover:bg-red-700 transition-colors shadow-lg shadow-red-600/30"
+                >
+                  Get Estimate
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-6 sm:px-8 py-3 sm:py-4 bg-black text-white font-black italic uppercase tracking-wider rounded-lg sm:rounded-xl text-xs sm:text-sm hover:bg-gray-800 transition-colors"
+                >
+                  Book Now
+                </motion.button>
+              </div>
+            </motion.div>
+
+            {/* Right Icon Display */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="hidden lg:flex items-center justify-center"
+            >
+              <motion.div
+                animate={{ y: [0, -20, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                className={`relative w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 flex items-center justify-center`}
+              >
+                <div
+                  className="absolute inset-0 rounded-full opacity-20"
+                  style={{
+                    background: `radial-gradient(circle, ${currentService.accentColor} 0%, transparent 70%)`,
+                  }}
+                />
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                  className="absolute inset-8 sm:inset-10 md:inset-12 rounded-full border-2 border-dashed"
+                  style={{ borderColor: currentService.accentColor + "40" }}
+                />
+                <CurrentIcon
+                  size={80}
+                  className="relative z-10"
+                  style={{ color: currentService.accentColor }}
+                  strokeWidth={1.5}
+                />
+              </motion.div>
+            </motion.div>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
 };
 
-export default ServicesSection;
+export default Services;
