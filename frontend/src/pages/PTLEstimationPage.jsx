@@ -42,7 +42,7 @@ const PTLEstimationPage = () => {
 
     const validateForm = () => {
         const newErrors = {};
-        
+
         if (!validatePincode(origin)) {
             newErrors.origin = 'Please enter a valid 6-digit pincode';
         }
@@ -55,7 +55,7 @@ const PTLEstimationPage = () => {
         if (!boxes || parseInt(boxes) <= 0) {
             newErrors.boxes = 'Please enter a valid number of boxes';
         }
-        
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -86,11 +86,11 @@ const PTLEstimationPage = () => {
 
     const handleOtpChange = (index, value) => {
         if (value.length > 1) return;
-        
+
         const newOtp = [...otp];
         newOtp[index] = value;
         setOtp(newOtp);
-        
+
         if (value && index < 5) {
             const nextInput = document.getElementById(`otp-${index + 1}`);
             if (nextInput) nextInput.focus();
@@ -125,7 +125,7 @@ const PTLEstimationPage = () => {
         const newOtp = pastedData.split('');
         while (newOtp.length < 6) newOtp.push('');
         setOtp(newOtp);
-        
+
         const focusIndex = Math.min(pastedData.length, 5);
         const nextInput = document.getElementById(`otp-${focusIndex}`);
         if (nextInput) nextInput.focus();
@@ -151,20 +151,20 @@ const PTLEstimationPage = () => {
                     <div className="space-y-4">
                         <div className="flex items-center gap-3">
                             <div className="bg-red-600 h-1.5 w-12 rounded-full"></div>
-                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-red-600 italic">Precision Logistics</span>
+                            <span className="text-xs font-semibold uppercase tracking-wider text-red-600">Precision Logistics</span>
                         </div>
-                        <h1 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter leading-none text-gray-900">
-                            PTL <span className="text-transparent" style={{ WebkitTextStroke: '1px #111' }}>Estimate</span> Console
+                        <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-slate-900">
+                            PTL <span className="text-transparent" style={{ WebkitTextStroke: '1px #1e293b' }}>Estimate</span> Console
                         </h1>
                     </div>
                     <div className="flex gap-4">
-                        <div className="bg-white px-6 py-4 rounded-3xl border border-gray-100 flex items-center gap-4 shadow-sm">
+                        <div className="bg-white px-6 py-4 rounded-2xl border border-slate-100 flex items-center gap-4 shadow-sm">
                             <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center text-red-600">
                                 <Activity size={20} />
                             </div>
                             <div>
-                                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Live Rates</p>
-                                <p className="text-sm font-black italic">Standard Market+</p>
+                                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Live Rates</p>
+                                <p className="text-sm font-bold text-slate-900">Standard Market+</p>
                             </div>
                         </div>
                     </div>
@@ -176,17 +176,17 @@ const PTLEstimationPage = () => {
                     <div className="lg:col-span-8 space-y-8">
 
                         {/* Progress Stepper */}
-                        <div className="flex bg-white/50 backdrop-blur-md p-2 rounded-[2rem] border border-white gap-2 shadow-sm">
+                        <div className="flex bg-white/50 backdrop-blur-md p-2 rounded-2xl border border-white gap-2 shadow-sm">
                             <button
                                 onClick={() => setActiveSection('route')}
-                                className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-2xl transition-all font-black italic uppercase text-[10px] tracking-widest ${activeSection === 'route' ? 'bg-black text-white shadow-xl shadow-black/10' : 'text-gray-400 hover:text-black hover:bg-white'}`}
+                                className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-xl transition-all font-semibold uppercase text-xs tracking-wider ${activeSection === 'route' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-400 hover:text-slate-900 hover:bg-white'}`}
                             >
                                 <Navigation2 size={14} />
                                 01. Route Map
                             </button>
                             <button
                                 onClick={() => setActiveSection('load')}
-                                className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-2xl transition-all font-black italic uppercase text-[10px] tracking-widest ${activeSection === 'load' ? 'bg-black text-white shadow-xl shadow-black/10' : 'text-gray-400 hover:text-black hover:bg-white'}`}
+                                className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-xl transition-all font-semibold uppercase text-xs tracking-wider ${activeSection === 'load' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-400 hover:text-slate-900 hover:bg-white'}`}
                             >
                                 <Package size={14} />
                                 02. Load Specs
@@ -198,7 +198,7 @@ const PTLEstimationPage = () => {
                             key={activeSection}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-white rounded-[3rem] border border-gray-100 p-8 md:p-12 shadow-xl shadow-black/[0.02] relative overflow-hidden group"
+                            className="bg-white rounded-2xl border border-slate-50 p-8 md:p-12 shadow-sm relative overflow-hidden group"
                         >
                             <div className="absolute top-0 right-10 w-64 h-64 bg-red-600/5 rounded-full blur-[80px] pointer-events-none"></div>
 
@@ -206,26 +206,26 @@ const PTLEstimationPage = () => {
                                 <div className="space-y-12">
                                     <div className="space-y-10">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center text-red-600">
+                                            <div className="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center text-red-600">
                                                 <Target size={24} />
                                             </div>
                                             <div className="space-y-1">
-                                                <h3 className="text-xl font-black italic uppercase tracking-tight">Define Routing</h3>
-                                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Connect your origin and destination</p>
+                                                <h3 className="text-xl font-bold text-slate-900">Define Routing</h3>
+                                                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Connect your origin and destination</p>
                                             </div>
                                         </div>
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 relative">
                                             {/* Connecting Line Aesthetic */}
-                                            <div className="hidden md:flex absolute left-1/2 top-10 bottom-10 w-0.5 bg-gradient-to-b from-red-600/20 via-gray-100 to-transparent -translate-x-1/2 flex-col items-center justify-center">
-                                                <div className="w-1.5 h-1.5 bg-red-600 rounded-full shadow-[0_0_10px_rgba(220,38,38,0.5)]"></div>
+                                            <div className="hidden md:flex absolute left-1/2 top-10 bottom-10 w-px bg-slate-100 -translate-x-1/2 flex-col items-center justify-center">
+                                                <div className="w-2 h-2 bg-red-600 rounded-full shadow-sm"></div>
                                             </div>
 
                                             <div className="space-y-4">
                                                 <div className="relative group">
-                                                    <label className="text-xs font-black uppercase text-gray-400 italic tracking-[0.2em] mb-3 block ml-1">Origin Pincode</label>
+                                                    <label className="text-[10px] font-semibold uppercase text-slate-400 tracking-wider mb-2 block ml-1">Origin Pincode</label>
                                                     <div className="relative">
-                                                        <MapPin size={20} className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-red-500 transition-colors" />
+                                                        <MapPin size={20} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-red-500 transition-colors" />
                                                         <input
                                                             type="text"
                                                             value={origin}
@@ -235,14 +235,13 @@ const PTLEstimationPage = () => {
                                                                 if (errors.origin) setErrors({ ...errors, origin: '' });
                                                             }}
                                                             placeholder="e.g. 110001"
-                                                            className={`w-full pl-16 pr-8 py-5 bg-gray-50/50 border-2 rounded-[2rem] font-black italic text-xl outline-none transition-all placeholder:text-gray-300 ${
-                                                                errors.origin 
-                                                                    ? 'bg-red-50 border-red-500 focus:border-red-600' 
-                                                                    : 'border-transparent focus:bg-white focus:border-black'
-                                                            }`}
+                                                            className={`w-full pl-16 pr-8 py-5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-lg outline-none transition-all placeholder:text-slate-300 ${errors.origin
+                                                                    ? 'bg-red-50 border-red-500 focus:border-red-600'
+                                                                    : 'focus:bg-white focus:border-slate-900'
+                                                                }`}
                                                         />
                                                         {errors.origin && (
-                                                            <p className="absolute -bottom-6 left-1 text-[9px] text-red-500 font-black uppercase tracking-widest">
+                                                            <p className="absolute -bottom-6 left-1 text-[10px] text-red-500 font-semibold uppercase tracking-wider">
                                                                 {errors.origin}
                                                             </p>
                                                         )}
@@ -252,9 +251,9 @@ const PTLEstimationPage = () => {
 
                                             <div className="space-y-4">
                                                 <div className="relative group">
-                                                    <label className="text-xs font-black uppercase text-gray-400 italic tracking-[0.2em] mb-3 block ml-1">Destination Pincode</label>
+                                                    <label className="text-[10px] font-semibold uppercase text-slate-400 tracking-wider mb-2 block ml-1">Destination Pincode</label>
                                                     <div className="relative">
-                                                        <MapPin size={20} className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-red-500 transition-colors" />
+                                                        <MapPin size={20} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-red-500 transition-colors" />
                                                         <input
                                                             type="text"
                                                             value={destination}
@@ -264,14 +263,13 @@ const PTLEstimationPage = () => {
                                                                 if (errors.destination) setErrors({ ...errors, destination: '' });
                                                             }}
                                                             placeholder="e.g. 400001"
-                                                            className={`w-full pl-16 pr-8 py-5 bg-gray-50/50 border-2 rounded-[2rem] font-black italic text-xl outline-none transition-all placeholder:text-gray-300 ${
-                                                                errors.destination 
-                                                                    ? 'bg-red-50 border-red-500 focus:border-red-600' 
-                                                                    : 'border-transparent focus:bg-white focus:border-black'
-                                                            }`}
+                                                            className={`w-full pl-16 pr-8 py-5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-lg outline-none transition-all placeholder:text-slate-300 ${errors.destination
+                                                                    ? 'bg-red-50 border-red-500 focus:border-red-600'
+                                                                    : 'focus:bg-white focus:border-slate-900'
+                                                                }`}
                                                         />
                                                         {errors.destination && (
-                                                            <p className="absolute -bottom-6 left-1 text-[9px] text-red-500 font-black uppercase tracking-widest">
+                                                            <p className="absolute -bottom-6 left-1 text-[10px] text-red-500 font-semibold uppercase tracking-wider">
                                                                 {errors.destination}
                                                             </p>
                                                         )}
@@ -283,7 +281,7 @@ const PTLEstimationPage = () => {
 
                                     <button
                                         onClick={() => setActiveSection('load')}
-                                        className="w-full md:w-fit px-12 py-5 bg-black text-white rounded-[2rem] font-black italic uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-4 group shadow-2xl shadow-black/10 hover:bg-red-600 active:scale-95"
+                                        className="w-full md:w-fit px-12 py-5 bg-slate-900 text-white rounded-xl font-bold uppercase tracking-wider text-xs transition-all flex items-center justify-center gap-4 group shadow-sm hover:bg-red-600 active:scale-95"
                                     >
                                         Next Component
                                         <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform" />
@@ -295,19 +293,19 @@ const PTLEstimationPage = () => {
                                 <div className="space-y-12">
                                     <div className="space-y-10">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 bg-black rounded-2xl flex items-center justify-center text-white">
+                                            <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center text-white">
                                                 <Zap size={24} />
                                             </div>
                                             <div className="space-y-1">
-                                                <h3 className="text-xl font-black italic uppercase tracking-tight">Cargo Specifications</h3>
-                                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Detail your shipment dimensions</p>
+                                                <h3 className="text-xl font-bold text-slate-900">Cargo Specifications</h3>
+                                                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Detail your shipment dimensions</p>
                                             </div>
                                         </div>
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                                             <div className="space-y-4">
-                                                <label className="text-xs font-black uppercase text-gray-400 italic tracking-[0.2em] mb-1 block ml-1">Weight Metric</label>
-                                                <div className="flex bg-gray-50/50 border-2 border-transparent rounded-3xl overflow-hidden h-16 focus-within:bg-white focus-within:border-black transition-all">
+                                                <label className="text-[10px] font-semibold uppercase text-slate-400 tracking-wider mb-2 block ml-1">Weight Metric</label>
+                                                <div className="flex bg-slate-50 border border-slate-200 rounded-xl overflow-hidden h-16 focus-within:bg-white focus-within:border-slate-900 transition-all">
                                                     <input
                                                         type="number"
                                                         value={weight}
@@ -316,27 +314,26 @@ const PTLEstimationPage = () => {
                                                             if (errors.weight) setErrors({ ...errors, weight: '' });
                                                         }}
                                                         placeholder="0.00"
-                                                        className={`flex-1 px-8 font-black italic text-3xl outline-none bg-transparent ${
-                                                            errors.weight ? 'bg-red-50' : ''
-                                                        }`}
+                                                        className={`flex-1 px-8 font-bold text-3xl outline-none bg-transparent ${errors.weight ? 'bg-red-50' : ''
+                                                            }`}
                                                     />
-                                                    <div className="px-8 flex items-center border-l border-gray-100">
-                                                        <select className="bg-transparent font-black italic uppercase text-xs outline-none cursor-pointer">
+                                                    <div className="px-8 flex items-center border-l border-slate-100">
+                                                        <select className="bg-transparent font-bold uppercase text-xs outline-none cursor-pointer">
                                                             <option>kg</option>
                                                             <option>ton</option>
                                                         </select>
                                                     </div>
                                                 </div>
                                                 {errors.weight && (
-                                                    <p className="text-[9px] text-red-500 font-black uppercase tracking-widest mt-2">
+                                                    <p className="text-[10px] text-red-500 font-semibold uppercase tracking-wider mt-2">
                                                         {errors.weight}
                                                     </p>
                                                 )}
                                             </div>
 
                                             <div className="space-y-4">
-                                                <label className="text-xs font-black uppercase text-gray-400 italic tracking-[0.2em] mb-1 block ml-1">Number of Boxes</label>
-                                                <div className="flex bg-gray-50/50 border-2 border-transparent rounded-3xl overflow-hidden h-16 focus-within:bg-white focus-within:border-black transition-all">
+                                                <label className="text-[10px] font-semibold uppercase text-slate-400 tracking-wider mb-2 block ml-1">Number of Boxes</label>
+                                                <div className="flex bg-slate-50 border border-slate-200 rounded-xl overflow-hidden h-16 focus-within:bg-white focus-within:border-slate-900 transition-all">
                                                     <input
                                                         type="number"
                                                         value={boxes}
@@ -344,41 +341,40 @@ const PTLEstimationPage = () => {
                                                             setBoxes(e.target.value);
                                                             if (errors.boxes) setErrors({ ...errors, boxes: '' });
                                                         }}
-                                                        className={`flex-1 px-8 font-black italic text-3xl outline-none bg-transparent ${
-                                                            errors.boxes ? 'bg-red-50' : ''
-                                                        }`}
+                                                        className={`flex-1 px-8 font-bold text-3xl outline-none bg-transparent ${errors.boxes ? 'bg-red-50' : ''
+                                                            }`}
                                                     />
-                                                    <div className="px-8 flex items-center border-l border-gray-100 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                                                    <div className="px-8 flex items-center border-l border-slate-100 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                                                         Units
                                                     </div>
                                                 </div>
                                                 {errors.boxes && (
-                                                    <p className="text-[9px] text-red-500 font-black uppercase tracking-widest mt-2">
+                                                    <p className="text-[10px] text-red-500 font-semibold uppercase tracking-wider mt-2">
                                                         {errors.boxes}
                                                     </p>
                                                 )}
                                             </div>
 
                                             <div className="md:col-span-2 space-y-4">
-                                                <label className="text-xs font-black uppercase text-gray-400 italic tracking-[0.2em] mb-1 block ml-1">Dimensions (L x W x H)</label>
+                                                <label className="text-[10px] font-semibold uppercase text-slate-400 tracking-wider mb-2 block ml-1">Dimensions (L x W x H)</label>
                                                 <div className="grid grid-cols-3 gap-4 h-16">
-                                                    <input 
-                                                        placeholder="L" 
+                                                    <input
+                                                        placeholder="L"
                                                         value={dimensions.length}
                                                         onChange={(e) => setDimensions({ ...dimensions, length: e.target.value })}
-                                                        className="bg-gray-50/50 border-2 border-transparent rounded-3xl font-black italic text-2xl text-center outline-none focus:bg-white focus:border-black transition-all" 
+                                                        className="bg-slate-50 border border-slate-100 rounded-xl font-bold text-2xl text-center outline-none focus:bg-white focus:border-slate-900 transition-all"
                                                     />
-                                                    <input 
-                                                        placeholder="W" 
+                                                    <input
+                                                        placeholder="W"
                                                         value={dimensions.width}
                                                         onChange={(e) => setDimensions({ ...dimensions, width: e.target.value })}
-                                                        className="bg-gray-50/50 border-2 border-transparent rounded-3xl font-black italic text-2xl text-center outline-none focus:bg-white focus:border-black transition-all" 
+                                                        className="bg-slate-50 border border-slate-100 rounded-xl font-bold text-2xl text-center outline-none focus:bg-white focus:border-slate-900 transition-all"
                                                     />
-                                                    <input 
-                                                        placeholder="H" 
+                                                    <input
+                                                        placeholder="H"
                                                         value={dimensions.height}
                                                         onChange={(e) => setDimensions({ ...dimensions, height: e.target.value })}
-                                                        className="bg-gray-50/50 border-2 border-transparent rounded-3xl font-black italic text-2xl text-center outline-none focus:bg-white focus:border-black transition-all" 
+                                                        className="bg-slate-50 border border-slate-100 rounded-xl font-bold text-2xl text-center outline-none focus:bg-white focus:border-slate-900 transition-all"
                                                     />
                                                 </div>
                                             </div>
@@ -388,14 +384,14 @@ const PTLEstimationPage = () => {
                                     <div className="flex gap-4 pt-4">
                                         <button
                                             onClick={() => setActiveSection('route')}
-                                            className="px-10 py-5 bg-white border-2 border-gray-100 text-gray-900 rounded-[2rem] font-black italic uppercase tracking-[0.2em] text-xs transition-all hover:bg-gray-50"
+                                            className="px-10 py-5 bg-white border border-slate-100 text-slate-900 rounded-xl font-bold uppercase tracking-wider text-xs transition-all hover:bg-slate-50"
                                         >
                                             Back
                                         </button>
                                         <button
                                             onClick={handleProceed}
                                             disabled={isLoading}
-                                            className="flex-1 py-5 bg-red-600 text-white rounded-[2rem] font-black italic uppercase tracking-[0.2em] text-xs transition-all flex items-center justify-center gap-4 hover:bg-black group shadow-xl shadow-red-100 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-red-600"
+                                            className="flex-1 py-5 bg-red-600 text-white rounded-xl font-bold uppercase tracking-wider text-xs transition-all flex items-center justify-center gap-4 hover:bg-slate-900 group shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-red-600"
                                         >
                                             {isLoading ? (
                                                 <>
@@ -423,10 +419,10 @@ const PTLEstimationPage = () => {
                                 { icon: Plus, label: 'Extra Security' },
                             ].map((badge, i) => (
                                 <div key={i} className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-white border border-gray-100 flex items-center justify-center text-red-600 shadow-sm">
+                                    <div className="w-8 h-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-red-600 shadow-sm">
                                         <badge.icon size={14} />
                                     </div>
-                                    <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 italic">{badge.label}</span>
+                                    <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">{badge.label}</span>
                                 </div>
                             ))}
                         </div>
@@ -436,58 +432,58 @@ const PTLEstimationPage = () => {
                     <div className="lg:col-span-4 space-y-8 lg:sticky lg:top-24">
 
                         {/* Summary Visualization Card */}
-                        <div className="bg-white rounded-[3rem] border border-gray-100 p-10 space-y-10 relative overflow-hidden shadow-2xl shadow-black/[0.03]">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-gray-50 rounded-bl-[4rem]"></div>
+                        <div className="bg-white rounded-2xl border border-slate-50 p-10 space-y-10 relative overflow-hidden shadow-sm">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-bl-[4rem]"></div>
 
                             <div className="relative z-10 space-y-10">
                                 <div className="flex flex-col gap-1">
-                                    <label className="text-[10px] font-black text-red-600 uppercase tracking-[0.3em] italic">Instant Summary</label>
-                                    <h3 className="text-sm font-black italic text-gray-400 uppercase">Token: #P782-99</h3>
+                                    <label className="text-xs font-bold text-red-600 uppercase tracking-wider">Instant Summary</label>
+                                    <h3 className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Token: #P782-99</h3>
                                 </div>
 
                                 <div className="space-y-8">
                                     <div className="flex justify-between items-center">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-400">
+                                            <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
                                                 <Scale size={20} />
                                             </div>
                                             <div className="space-y-0.5">
-                                                <label className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Gross Weight</label>
-                                                <p className="text-xl font-black italic">{weight || '0.00'} <span className="text-[10px] text-gray-400">KG</span></p>
+                                                <label className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">Gross Weight</label>
+                                                <p className="text-xl font-bold text-slate-900">{weight || '0.00'} <span className="text-[10px] text-slate-400">KG</span></p>
                                             </div>
                                         </div>
                                     </div>
                                     <div className="flex justify-between items-center">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-400">
+                                            <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
                                                 <Box size={20} />
                                             </div>
                                             <div className="space-y-0.5">
-                                                <label className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Total Units</label>
-                                                <p className="text-xl font-black italic">{boxes} <span className="text-[10px] text-gray-400">BOXES</span></p>
+                                                <label className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">Total Units</label>
+                                                <p className="text-xl font-bold text-slate-900">{boxes} <span className="text-[10px] text-slate-400">BOXES</span></p>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="pt-8 border-t border-gray-50 space-y-3">
+                                    <div className="pt-8 border-t border-slate-50 space-y-3">
                                         <div className="flex justify-between items-center">
-                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Est. Cost</span>
-                                            <span className="text-4xl font-black italic text-red-600 tracking-tighter">₹ 0.00</span>
+                                            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Est. Cost</span>
+                                            <span className="text-4xl font-bold text-red-600 tracking-tight">₹ 0.00</span>
                                         </div>
-                                        <p className="text-[8px] font-bold text-gray-300 uppercase leading-relaxed text-center">Final charges confirmed after physical audit</p>
+                                        <p className="text-[9px] font-semibold text-slate-300 uppercase tracking-wider leading-relaxed text-center">Final charges confirmed after physical audit</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Branding/Promo Card */}
-                        <div className="bg-black rounded-[3rem] p-10 h-56 relative overflow-hidden group cursor-pointer shadow-2xl">
+                        <div className="bg-slate-900 rounded-2xl p-10 h-56 relative overflow-hidden group cursor-pointer shadow-sm">
                             <div className="absolute inset-0 bg-gradient-to-br from-red-600/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                             <div className="relative z-10 space-y-4">
-                                <h3 className="text-3xl font-black italic text-white uppercase leading-none tracking-tighter">Prime-Link<br /><span className="text-red-600">Route 1</span></h3>
+                                <h3 className="text-3xl font-bold text-white uppercase leading-tight tracking-tight">Prime-Link<br /><span className="text-red-600">Route 1</span></h3>
                                 <div className="flex items-center gap-2 bg-white/10 w-fit px-4 py-2 rounded-full backdrop-blur-md">
                                     <Zap size={14} className="fill-white text-white" />
-                                    <span className="text-[8px] font-black text-white uppercase tracking-[0.2em]">Verified Lane</span>
+                                    <span className="text-[9px] font-semibold text-white uppercase tracking-wider">Verified Lane</span>
                                 </div>
                             </div>
                             <img
@@ -516,11 +512,11 @@ const PTLEstimationPage = () => {
                             initial={{ opacity: 0, scale: 0.95, y: 30 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 30 }}
-                            className="relative bg-white text-gray-900 w-full max-w-[480px] rounded-[3.5rem] overflow-hidden shadow-2xl p-12 border border-white"
+                            className="relative bg-white text-slate-900 w-full max-w-[480px] rounded-2xl overflow-hidden shadow-xl p-12 border border-white"
                         >
                             <button
                                 onClick={() => setIsModalOpen(false)}
-                                className="absolute top-10 right-10 text-gray-300 hover:text-black transition-colors"
+                                className="absolute top-10 right-10 text-slate-300 hover:text-slate-900 transition-colors"
                             >
                                 <X size={28} />
                             </button>
@@ -528,30 +524,40 @@ const PTLEstimationPage = () => {
                             {modalStep === 1 && (
                                 <div className="space-y-12 py-4">
                                     <div className="space-y-4 text-center md:text-left">
-                                        <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center text-red-600 mx-auto md:mx-0">
+                                        <div className="w-14 h-14 bg-red-50 rounded-xl flex items-center justify-center text-red-600 mx-auto md:mx-0">
                                             <Smartphone size={28} />
                                         </div>
                                         <div className="space-y-2">
-                                            <h3 className="text-3xl font-black italic uppercase tracking-tighter">Client Auth</h3>
-                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em]">Verify your session to finalize</p>
+                                            <h3 className="text-2xl font-bold text-slate-900">Client Auth</h3>
+                                            <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Verify your session to finalize</p>
                                         </div>
                                     </div>
                                     <div className="space-y-6">
                                         <div className="space-y-3">
-                                            <label className="text-[9px] font-black uppercase text-gray-400 italic tracking-[0.2em] ml-2">Mobile Terminal</label>
+                                            <label className="text-[10px] font-semibold uppercase text-slate-400 tracking-wider ml-2">Mobile Terminal</label>
                                             <input
                                                 type="tel"
                                                 value={phone}
-                                                onChange={(e) => setPhone(e.target.value)}
+                                                onChange={(e) => {
+                                                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                                    setPhone(val);
+                                                }}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleNextStep()}
-                                                placeholder="+91 - 00000 00000"
-                                                className="w-full px-8 py-5 bg-gray-50 border-2 border-transparent rounded-3xl font-black italic text-xl outline-none focus:bg-white focus:border-black transition-all shadow-inner"
+                                                placeholder="00000 00000"
+                                                className="w-full px-8 py-5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-lg outline-none focus:bg-white focus:border-slate-900 transition-all shadow-inner"
+                                                maxLength={10}
                                             />
                                         </div>
                                         <button
-                                            onClick={handleNextStep}
+                                            onClick={() => {
+                                                if (phone.length !== 10) {
+                                                    setErrors({ phone: 'Mobile number must be 10 digits' });
+                                                    return;
+                                                }
+                                                handleNextStep();
+                                            }}
                                             disabled={isLoading}
-                                            className="w-full bg-black text-white py-6 rounded-[2rem] font-black italic uppercase tracking-[0.2em] text-xs transition-all shadow-2xl hover:bg-red-600 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-black"
+                                            className="w-full bg-slate-900 text-white py-6 rounded-xl font-bold uppercase tracking-wider text-xs transition-all shadow-sm hover:bg-red-600 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-900"
                                         >
                                             {isLoading ? (
                                                 <div className="flex items-center justify-center gap-3">
@@ -569,8 +575,8 @@ const PTLEstimationPage = () => {
                             {modalStep === 2 && (
                                 <div className="space-y-12 py-4 text-center">
                                     <div className="space-y-3">
-                                        <h3 className="text-3xl font-black italic uppercase tracking-tighter">Verification</h3>
-                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em]">6-Digit token sent to ending in {phone.slice(-4) || 'XXXX'}</p>
+                                        <h3 className="text-2xl font-bold text-slate-900">Verification</h3>
+                                        <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">6-Digit token sent to ending in {phone.slice(-4) || 'XXXX'}</p>
                                     </div>
                                     <div className="space-y-8">
                                         <div className="flex justify-between gap-3 px-2">
@@ -584,14 +590,14 @@ const PTLEstimationPage = () => {
                                                     onChange={(e) => handleOtpChange(i, e.target.value)}
                                                     onKeyDown={(e) => handleOtpKeyDown(i, e)}
                                                     onPaste={handleOtpPaste}
-                                                    className="w-full h-16 bg-gray-50 border-2 border-transparent rounded-2xl text-center font-black text-2xl italic focus:border-black focus:bg-white focus:outline-none transition-all shadow-inner"
+                                                    className="w-full h-16 bg-slate-50 border border-slate-200 rounded-xl text-center font-bold text-2xl focus:border-slate-900 focus:bg-white focus:outline-none transition-all shadow-inner"
                                                 />
                                             ))}
                                         </div>
                                         <button
                                             onClick={handleNextStep}
                                             disabled={isLoading}
-                                            className="w-full bg-red-600 text-white py-6 rounded-[2rem] font-black italic uppercase tracking-[0.2em] text-xs transition-all shadow-2xl hover:bg-black active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-red-600"
+                                            className="w-full bg-red-600 text-white py-6 rounded-xl font-bold uppercase tracking-wider text-xs transition-all shadow-sm hover:bg-slate-900 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-red-600"
                                         >
                                             {isLoading ? (
                                                 <div className="flex items-center justify-center gap-3">
@@ -603,8 +609,8 @@ const PTLEstimationPage = () => {
                                             )}
                                         </button>
                                         <div className="flex flex-col gap-2">
-                                            <button className="text-[9px] font-black text-gray-300 uppercase tracking-widest hover:text-black transition-all">Didn't receive code? Resend</button>
-                                            <button onClick={() => setModalStep(1)} className="text-[9px] font-black text-red-600 uppercase tracking-widest hover:underline transition-all font-italic">Modify Terminal #</button>
+                                            <button className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider hover:text-slate-900 transition-all">Didn't receive code? Resend</button>
+                                            <button onClick={() => setModalStep(1)} className="text-[10px] font-semibold text-red-600 uppercase tracking-wider hover:underline transition-all">Modify Terminal #</button>
                                         </div>
                                     </div>
                                 </div>
@@ -619,12 +625,12 @@ const PTLEstimationPage = () => {
                                         </div>
                                     </div>
                                     <div className="space-y-3">
-                                        <h3 className="text-3xl font-black italic uppercase tracking-tighter">Success</h3>
-                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em]">Console identity confirmed</p>
+                                        <h3 className="text-2xl font-bold text-slate-900">Success</h3>
+                                        <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Console identity confirmed</p>
                                     </div>
                                     <button
                                         onClick={handleNextStep}
-                                        className="w-full bg-black text-white py-6 rounded-[2rem] font-black italic uppercase tracking-[0.2em] text-xs transition-all shadow-2xl hover:bg-green-600 active:scale-95"
+                                        className="w-full bg-slate-900 text-white py-6 rounded-xl font-bold uppercase tracking-wider text-xs transition-all shadow-sm hover:bg-green-600 active:scale-95"
                                     >
                                         Go to Booking Summary
                                     </button>

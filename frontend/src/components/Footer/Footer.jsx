@@ -1,6 +1,4 @@
-"use client";
-
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import {
@@ -11,6 +9,7 @@ import {
   FaMapMarkerAlt,
   FaYoutube,
   FaArrowUp,
+  FaLinkedinIn
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import logo from "../../assets/logo.jpeg";
@@ -30,7 +29,7 @@ const Footer = () => {
         title: "Invalid Email",
         text: "Please enter a valid email address.",
         icon: "warning",
-        confirmButtonColor: "#D28042",
+        confirmButtonColor: "#DC2626",
       });
       return;
     }
@@ -44,11 +43,9 @@ const Footer = () => {
 
       Swal.fire({
         title: "Subscribed!",
-        text:
-          res.data.message ||
-          "You have successfully subscribed to our newsletter.",
+        text: res.data.message || "You have successfully subscribed to our newsletter.",
         icon: "success",
-        confirmButtonColor: "#D28042",
+        confirmButtonColor: "#DC2626",
       });
 
       setEmail("");
@@ -57,7 +54,7 @@ const Footer = () => {
         title: "Error",
         text: "Something went wrong. Please try again later.",
         icon: "error",
-        confirmButtonColor: "#D28042",
+        confirmButtonColor: "#DC2626",
       });
     } finally {
       setLoading(false);
@@ -74,222 +71,167 @@ const Footer = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const quickLinks = [
-    { name: "Home", href: "/" },
-    // { name: "Services", href: "/services" },
-    { name: "Lifetime Strategy", href: "/lifetime-strategy" },
-    { name: "About Founders", href: "/about-founders" },
-    { name: "Contact Us", href: "/contact-us" },
-  ];
-
-  // const policies = [
-  //   { name: "Terms & Conditions", href: "/terms" },
-  //   { name: "Privacy Policy", href: "/privacy" },
-  //   { name: "Refund Policy", href: "/refund" },
-  // ];
-
-  const quicklinks = [
-    { name: "Planning = Wealth", href: "/why-retirement-planning" },
-    { name: "Time = Wealth", href: "/why-start-early" },
-    { name: "Why RetireWell", href: "/why-choose-us" },
-    { name: "Questionnaire", href: "/questionnaire" },
-  ];
+  const footerLinks = {
+    company: [
+      { name: "Home", href: "/" },
+      { name: "About Us", href: "/about" },
+      { name: "Services", href: "/#services" },
+      { name: "Contact Us", href: "/contact" },
+    ],
+    services: [
+      { name: "Full Truck Load", href: "/services/full-load" },
+      { name: "Partial Truck Load", href: "/services/partial-load" },
+      { name: "Shared Load", href: "/services/shared-load" },
+      { name: "Tracking", href: "/#track" },
+    ],
+    support: [
+      { name: "FAQs", href: "/#faq" },
+      { name: "Privacy Policy", href: "/privacy" },
+      { name: "Terms of Service", href: "/terms" },
+      { name: "Refund Policy", href: "/refund" },
+    ]
+  };
 
   const socialLinks = [
-    {
-      icon: <FaYoutube />,
-      href: "https://www.youtube.com/@Retirewellindiaofficial",
-      name: "Youtube",
-    },
-    {
-      icon: <FaFacebookF />,
-      href: "https://www.facebook.com/profile.php?id=61583495368426",
-      name: "Facebook",
-    },
-    {
-      icon: <FaInstagram />,
-      href: "https://www.instagram.com/retirewellindia",
-      name: "Instagram",
-    },
+    { icon: <FaFacebookF />, href: "#", name: "Facebook" },
+    { icon: <FaInstagram />, href: "#", name: "Instagram" },
+    { icon: <FaLinkedinIn />, href: "#", name: "LinkedIn" },
+    { icon: <FaYoutube />, href: "#", name: "Youtube" },
   ];
 
   return (
-    <>
-      <footer className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden">
-        {/* Gradient background accents */}
-        <div className="absolute top-0 left-0 w-48 h-48 bg-[#D28042]/20 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 right-0 w-56 h-56 bg-[#D28042]/10 rounded-full blur-3xl"></div>
+    <footer className="bg-slate-900 pt-20 pb-10 text-slate-300 font-sans relative overflow-hidden">
+      {/* Background Decorative Elements */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-red-600/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+      <div className="absolute bottom-0 left-0 w-64 h-64 bg-slate-800/20 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2"></div>
 
-        {/* Main Footer Content */}
-        <div className="relative max-w-7xl mx-auto px-6 py-16">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
-            {/* Brand Section */}
-            <div className="flex flex-col items-center md:items-start">
-              <img
-                src={logo}
-                alt="Retire Well India Logo"
-                className="h-14 mb-6"
-              />
-              <p className="text-gray-300 mb-6 leading-relaxed text-center md:text-left max-w-sm">
-                Helping young Indians secure a wealthy and stress-free
-                retirement. Start early, invest wisely, and retire rich.
-              </p>
-              <div className="space-y-3 text-sm">
-                <div className="flex items-center justify-center md:justify-start space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
-                    <FaEnvelope className="w-3 h-3 text-white" />
-                  </div>
-                  <a
-                    href="mailto:support@retirewellindia.com"
-                    className="text-gray-300 hover:text-orange-500 transition"
-                  >
-                    support@retirewellindia.com
-                  </a>
+      <div className="max-w-7xl mx-auto px-6 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8 mb-16">
+
+          {/* Brand & Contact */}
+          <div className="lg:col-span-4 space-y-8">
+            <img src={logo} alt="Dot2Dotz Logo" className="h-14 brightness-110" />
+            <p className="text-slate-400 text-sm leading-relaxed max-w-sm font-medium">
+              Your trusted partner in seamless logistics. We connect businesses with reliable shipping solutions across India, ensuring speed, safety, and transparency.
+            </p>
+            <div className="space-y-4">
+              <div className="flex items-center gap-4 group cursor-pointer">
+                <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-red-500 group-hover:bg-red-600 group-hover:text-white transition-all">
+                  <FaEnvelope size={14} />
                 </div>
-                <div className="flex items-center justify-center md:justify-start space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
-                    <FaPhone className="w-3 h-3 text-white" />
-                  </div>
-                  <a
-                    href="https://wa.me/919876543210"
-                    className="text-gray-300 hover:text-orange-500 transition"
-                  >
-                    +91 98765 43210
-                  </a>
+                <div>
+                  <p className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Email Us</p>
+                  <a href="mailto:support@dot2dotz.com" className="text-sm font-bold text-slate-200 group-hover:text-red-500 transition-colors">support@dot2dotz.com</a>
                 </div>
-                <div className="flex items-start justify-center md:justify-start space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg flex items-center justify-center mt-0.5">
-                    <FaMapMarkerAlt className="w-3 h-3 text-white" />
-                  </div>
-                  <span className="text-gray-300">Mumbai, Chennai, Delhi</span>
+              </div>
+              <div className="flex items-center gap-4 group cursor-pointer">
+                <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-red-500 group-hover:bg-red-600 group-hover:text-white transition-all">
+                  <FaPhone size={14} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Call Support</p>
+                  <a href="tel:+918744987441" className="text-sm font-bold text-slate-200 group-hover:text-red-500 transition-colors">+91 87449 87441</a>
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Quick Links */}
-            <div className="flex flex-col items-center md:items-start">
-              <h3 className="text-lg font-semibold mb-6 text-orange-500">
-                Quick Links
-              </h3>
-              <ul className="space-y-3 text-center md:text-left">
-                {quickLinks.map((link, i) => (
-                  <li key={i}>
-                    <Link
-                      to={link.href}
-                      className="text-gray-300 hover:text-orange-500 transition-all duration-200 flex items-center justify-center md:justify-start group"
-                    >
-                      <span className="w-1.5 h-1.5 bg-[#D28042] rounded-full mr-3 group-hover:w-2 transition-all"></span>
-                      {link.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
+          {/* Navigation Links */}
+          <div className="lg:col-span-2 space-y-6">
+            <h4 className="text-white font-bold text-lg tracking-tight">Company</h4>
+            <ul className="space-y-3">
+              {footerLinks.company.map((link) => (
+                <li key={link.name}>
+                  <Link to={link.href} className="text-sm font-medium hover:text-red-500 transition-colors">
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-            {/* Quick Links */}
-            <div className="flex flex-col items-center md:items-start">
-              <h3 className="text-lg font-semibold mb-6 text-orange-500">
-                Quick Links
-              </h3>
-              <ul className="space-y-3 text-center md:text-left">
-                {quicklinks.map((link, i) => (
-                  <li key={i}>
-                    <Link
-                      to={link.href}
-                      className="text-gray-300 hover:text-orange-500 transition-all duration-200 flex items-center justify-center md:justify-start group"
-                    >
-                      <span className="w-1.5 h-1.5 bg-[#D28042] rounded-full mr-3 group-hover:w-2 transition-all"></span>
-                      {link.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
+          <div className="lg:col-span-2 space-y-6">
+            <h4 className="text-white font-bold text-lg tracking-tight">Services</h4>
+            <ul className="space-y-3">
+              {footerLinks.services.map((link) => (
+                <li key={link.name}>
+                  <Link to={link.href} className="text-sm font-medium hover:text-red-500 transition-colors">
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-            {/* Newsletter */}
-            <div className="flex flex-col items-center md:items-start">
-              <h3 className="text-lg font-semibold mb-6 text-orange-500">
-                Stay Updated
-              </h3>
-              <p className="text-sm text-gray-300 mb-4 text-center md:text-left">
-                Get financial insights, saving strategies, and retirement
-                planning tips right in your inbox.
-              </p>
-              <form onSubmit={handleNewsletterSubmit} className="w-full mb-6">
-                <div className="relative mb-4">
-                  <FaEnvelope className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email"
-                    className="w-full pl-12 pr-4 py-3 bg-white/10 border border-gray-500/30 rounded-xl text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D28042] transition"
-                    required
-                  />
-                </div>
+          {/* Newsletter & Social */}
+          <div className="lg:col-span-4 space-y-8">
+            <div className="space-y-4">
+              <h4 className="text-white font-bold text-lg tracking-tight">Newsletter</h4>
+              <p className="text-slate-400 text-sm font-medium">Get the latest logistics insights and updates.</p>
+              <form onSubmit={handleNewsletterSubmit} className="relative max-w-sm">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  className="w-full bg-slate-800 border border-slate-700 rounded-2xl py-4 pl-6 pr-32 text-sm text-slate-200 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all"
+                  required
+                />
                 <button
                   type="submit"
                   disabled={loading}
-                  className={`w-full py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-xl shadow-md hover:bg-[#b76d33] transform hover:scale-105 transition-all ${loading ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
+                  className="absolute right-2 top-2 bottom-2 bg-red-600 text-white px-6 rounded-xl text-[11px] font-bold uppercase tracking-wider hover:bg-red-700 transition-all disabled:opacity-50"
                 >
-                  {loading ? "Subscribing..." : "Subscribe"}
+                  {loading ? "..." : "Subscribe"}
                 </button>
               </form>
+            </div>
 
-              {/* Social Links */}
-              <div>
-                <h4 className="text-orange-500 font-semibold mb-3 text-center md:text-left">
-                  Follow Us
-                </h4>
-                <div className="flex items-center justify-center md:justify-start space-x-3">
-                  {socialLinks.map((s, i) => (
-                    <a
-                      key={i}
-                      href={s.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-10 h-10 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center text-white hover:bg-[#b76d33] hover:scale-110 transition"
-                      aria-label={s.name}
-                    >
-                      {s.icon}
-                    </a>
-                  ))}
-                </div>
+            <div className="space-y-4">
+              <h4 className="text-white font-bold text-sm uppercase tracking-widest">Connect With Us</h4>
+              <div className="flex gap-3">
+                {socialLinks.map((social) => (
+                  <a
+                    key={social.name}
+                    href={social.href}
+                    className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-red-600 hover:text-white transition-all transform hover:-translate-y-1 shadow-lg"
+                  >
+                    {social.icon}
+                  </a>
+                ))}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Bottom Section */}
-        {/* <div className="relative border-t border-[#D28042]/30 bg-[#1e324d]">
-          <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row items-center justify-between text-sm text-gray-300 space-y-4 md:space-y-0">
-            <span>© 2025 Retire Well India. All Rights Reserved.</span>
-            <div className="flex space-x-4">
-              {policies.map((link, i) => (
-                <Link
-                  key={i}
-                  to={link.href}
-                  className="hover:text-orange-500 transition"
-                >
-                  {link.name}
-                </Link>
-              ))}
-            </div>
+        {/* Bottom Bar */}
+        <div className="pt-10 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between gap-6 text-[12px] font-medium text-slate-500">
+          <p>&copy; {new Date().getFullYear()} Dot2Dotz Logistics Pvt Ltd. All rights reserved.</p>
+          <div className="flex gap-8">
+            {footerLinks.support.map((link) => (
+              <Link key={link.name} to={link.href} className="hover:text-red-500 transition-colors">{link.name}</Link>
+            ))}
           </div>
-        </div> */}
+        </div>
+      </div>
 
-        {/* Scroll to Top */}
-        {showScrollTop && (
-          <button
-            onClick={scrollToTop}
-            className="fixed bottom-8 right-8 w-14 h-14 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-full flex items-center justify-center shadow-xl transition-all hover:scale-110 z-50"
-          >
-            <FaArrowUp className="w-5 h-5" />
-          </button>
-        )}
-      </footer>
-    </>
+      {/* Scroll To Top */}
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-8 right-8 w-12 h-12 bg-red-600 text-white rounded-2xl flex items-center justify-center shadow-2xl hover:bg-red-700 hover:scale-110 transition-all z-[100]"
+        >
+          <FaArrowUp size={18} />
+        </button>
+      )}
+
+      <style>{`
+            @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+            .font-sans {
+                font-family: 'Poppins', sans-serif;
+            }
+        `}</style>
+    </footer>
   );
 };
 

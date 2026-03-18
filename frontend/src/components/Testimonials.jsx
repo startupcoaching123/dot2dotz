@@ -1,82 +1,127 @@
 import React from 'react';
-import { User, Quote } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Eye, MessageSquare, Truck } from 'lucide-react';
 
 const Testimonials = () => {
     const testimonials = [
         {
-            serviceType: "PART LOAD AND FULL LOAD",
-            feedback: "EXPERIENCED SINCE 10 YEARS",
-            author: "TVTV COMPANY",
-            description: "High reliability and consistent performance across all our logistics requirements."
+            id: 1,
+            name: "Alex Nick",
+            role: "DO PART LOAD AND FULL LOAD",
+            description: "DO PART LOAD AND FULL LOAD",
+            quote: "Over 10 Years of operational excellence",
+            tags: ["Machine Load", "Furniture Load"],
+            views: "1.2k",
+            comments: "10",
+            image: "https://i.pravatar.cc/150?u=alex"
         },
         {
-            serviceType: "PART LOAD AND FULL LOAD",
-            feedback: "EXPERIENCED SINCE 10 YEARS",
-            author: "TVTV COMPANY",
-            description: "Exceptional service quality and timely deliveries for our bulk shipments."
+            id: 2,
+            name: "Sara Grey",
+            role: "DO PART LOAD AND FULL LOAD",
+            description: "DO FULL LOAD",
+            quote: "Over 20 Years of operational excellence",
+            tags: ["Furniture Load"],
+            views: "1.2k",
+            comments: "10",
+            image: "https://i.pravatar.cc/150?u=sara"
         }
     ];
 
     return (
-        <section className="py-24 bg-[#757575] relative overflow-hidden">
-            {/* Speed Accents for Background */}
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent opacity-30"></div>
+        <section className="py-20 bg-white overflow-hidden font-sans">
+            <div className="max-w-6xl mx-auto px-4">
 
-            <div className="max-w-[1440px] mx-auto px-6 md:px-10 relative z-10">
-                {/* Header */}
-                <div className="text-center mb-20">
-                    <h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-[0.2em] text-white">
-                        WHY TRUST OUR <span className="text-red-600">VENDORS</span>
+                {/* Header Section */}
+                <div className="flex flex-col items-center mb-20">
+                    <div className="flex items-center w-full max-w-2xl mb-8">
+                        <div className="flex-grow h-[1px] bg-red-200"></div>
+                        <div className="w-1.5 h-1.5 rounded-full bg-red-400 mx-2"></div>
+                        <div className="px-6 py-2 border border-red-200 rounded-full flex items-center justify-center">
+                            <span className="text-red-600 text-[11px] font-bold tracking-tight">3940+ Happy Landingfolio Users</span>
+                        </div>
+                        <div className="w-1.5 h-1.5 rounded-full bg-red-400 mx-2"></div>
+                        <div className="flex-grow h-[1px] bg-red-200"></div>
+                    </div>
+                    <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight text-center">
+                        WHY TRUST OUR <span className="text-red-500">VENDORS</span>
                     </h2>
-                    <div className="w-24 h-1 bg-red-600 mx-auto mt-6 rounded-full transform skew-x-[-20deg]"></div>
                 </div>
 
-                {/* Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                {/* Testimonials Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-16">
                     {testimonials.map((item, index) => (
-                        <div key={index} className="group relative">
-                            {/* Speech Bubble Card */}
-                            <div className="bg-white p-10 md:p-14 rounded-[2rem] shadow-2xl transform transition-all duration-500 group-hover:translate-y-[-10px] group-hover:skew-x-[-1deg] relative">
-                                {/* Quote Icon speed accent */}
-                                <div className="absolute top-8 right-10 text-gray-100 group-hover:text-red-50/50 transition-colors">
-                                    <Quote size={80} fill="currentColor" />
-                                </div>
+                        <motion.div
+                            key={item.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.5, delay: index * 0.1 }}
+                            className="bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 px-8 py-8 relative group"
+                        >
+                            {/* Vendor Tag */}
+                            <div className="absolute top-10 left-10">
+                                <span className="bg-slate-50 text-red-500 text-[10px] font-bold px-4 py-1.5 rounded-lg border border-slate-100 group-hover:bg-red-50 transition-colors uppercase">
+                                    Vendor
+                                </span>
+                            </div>
 
-                                <div className="relative z-10 space-y-6">
-                                    <span className="inline-block text-red-600 font-black italic tracking-widest text-sm uppercase">
-                                        {item.serviceType}
-                                    </span>
-                                    <h3 className="text-2xl md:text-3xl font-black italic text-black uppercase leading-tight">
-                                        "{item.feedback}"
+                            {/* Truck Icon */}
+                            <div className="absolute top-10 right-10 text-red-500">
+                                <Truck size={28} strokeWidth={1.5} />
+                            </div>
+
+                            <div className="mt-12 space-y-6">
+                                <div className="space-y-4">
+                                    <p className="text-slate-400 text-[11px] font-bold uppercase tracking-wider">{item.description}</p>
+                                    <h3 className="text-xl md:text-2xl font-bold text-slate-800 leading-snug">
+                                        “{item.quote}”
                                     </h3>
-                                    <p className="text-gray-500 font-bold italic text-sm md:text-base leading-relaxed max-w-md">
-                                        {item.description}
-                                    </p>
                                 </div>
 
-                                {/* Speech Bubble Tail */}
-                                <div className="absolute -bottom-4 left-12 w-8 h-8 bg-white transform rotate-45"></div>
-                            </div>
+                                <div className="flex flex-wrap items-center gap-3">
+                                    {item.tags.map((tag, idx) => (
+                                        <span key={idx} className="px-5 py-2 rounded-full border border-slate-200 text-[11px] font-bold text-slate-500">
+                                            {tag}
+                                        </span>
+                                    ))}
 
-                            {/* Author Info */}
-                            <div className="mt-10 ml-6 flex items-center gap-5 group-hover:translate-x-3 transition-transform duration-500">
-                                <div className="w-16 h-16 rounded-full border-2 border-white/50 flex items-center justify-center bg-transparent group-hover:bg-red-600 group-hover:border-red-600 transition-all duration-300">
-                                    <User className="text-white" size={28} />
+                                    <div className="flex items-center gap-4 ml-auto text-slate-400">
+                                        <div className="flex items-center gap-1.5">
+                                            <Eye size={16} />
+                                            <span className="text-[11px] font-bold">{item.views}</span>
+                                        </div>
+                                        <div className="w-px h-4 bg-slate-200"></div>
+                                        <div className="flex items-center gap-1.5">
+                                            <MessageSquare size={16} />
+                                            <span className="text-[11px] font-bold">{item.comments}</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="flex flex-col">
-                                    <span className="text-xs font-black text-gray-300 uppercase tracking-[0.3em] mb-1 italic">Ordered By</span>
-                                    <span className="text-lg font-black text-white italic tracking-tighter uppercase">{item.author}</span>
-                                </div>
-                                {/* Speed Lines */}
-                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <div className="w-8 h-[2px] bg-red-600"></div>
-                                    <div className="w-4 h-[2px] bg-red-600/50"></div>
+
+                                <div className="pt-8 mt-8 border-t border-slate-50 flex items-center gap-4">
+                                    <img
+                                        src={item.image}
+                                        alt={item.name}
+                                        className="w-14 h-14 rounded-full object-cover border-4 border-slate-50 shadow-sm"
+                                    />
+                                    <div>
+                                        <h4 className="font-bold text-slate-800 tracking-tight">{item.name}</h4>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.role}</p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        </motion.div>
                     ))}
                 </div>
             </div>
+
+            <style>{`
+                @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+                .font-sans {
+                    font-family: 'Poppins', sans-serif;
+                }
+            `}</style>
         </section>
     );
 };

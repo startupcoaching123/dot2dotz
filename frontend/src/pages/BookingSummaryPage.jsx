@@ -56,11 +56,11 @@ const BookingSummaryPage = () => {
 
                 {/* Top Action Bar */}
                 <div className="flex justify-end gap-4">
-                    <button className="flex items-center gap-2 bg-[#F0F2F5] border border-gray-200 px-6 py-2.5 rounded-lg font-bold text-sm text-gray-700 hover:bg-gray-100 transition-all">
+                    <button className="flex items-center gap-2 bg-white border border-slate-200 px-6 py-2.5 rounded-xl font-semibold text-sm text-slate-700 hover:bg-slate-50 transition-all shadow-sm">
                         <Download size={18} />
                         Download PDF
                     </button>
-                    <button className="flex items-center gap-2 bg-[#FF3B30] text-white px-6 py-2.5 rounded-lg font-bold text-sm shadow-lg shadow-red-200 hover:bg-red-600 transition-all">
+                    <button className="flex items-center gap-2 bg-[#FF3B30] text-white px-6 py-2.5 rounded-xl font-semibold text-sm shadow-sm hover:bg-red-600 transition-all">
                         <Share2 size={18} />
                         Share Quote
                     </button>
@@ -73,9 +73,9 @@ const BookingSummaryPage = () => {
 
                         {/* Route Map Card */}
                         <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="bg-white rounded-3xl p-10 relative overflow-hidden shadow-sm border border-gray-100"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="bg-white rounded-2xl p-10 relative overflow-hidden shadow-sm border border-slate-100"
                         >
                             <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
                                 <div className="w-full h-full" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, black 1px, transparent 0)', backgroundSize: '32px 32px' }}></div>
@@ -83,8 +83,8 @@ const BookingSummaryPage = () => {
 
                             <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-12">
                                 <div className="text-center md:text-left flex-1">
-                                    <span className="text-[10px] font-black text-red-600 uppercase tracking-widest mb-2 block">Origin</span>
-                                    <h2 className="text-2xl font-black text-gray-900 italic">Mumbai, IN</h2>
+                                    <span className="text-xs font-semibold text-red-600 uppercase tracking-wider mb-2 block">Origin</span>
+                                    <h2 className="text-2xl font-bold text-slate-900">Mumbai, IN</h2>
                                 </div>
 
                                 <div className="flex flex-col items-center gap-2 relative px-10">
@@ -102,8 +102,8 @@ const BookingSummaryPage = () => {
                                 </div>
 
                                 <div className="text-center md:text-right flex-1">
-                                    <span className="text-[10px] font-black text-red-600 uppercase tracking-widest mb-2 block">Destination</span>
-                                    <h2 className="text-2xl font-black text-gray-900 italic">New Delhi, IN</h2>
+                                    <span className="text-xs font-semibold text-red-600 uppercase tracking-wider mb-2 block">Destination</span>
+                                    <h2 className="text-2xl font-bold text-slate-900">New Delhi, IN</h2>
                                 </div>
                             </div>
                         </motion.div>
@@ -117,17 +117,17 @@ const BookingSummaryPage = () => {
                             ].map((spec, i) => (
                                 <motion.div
                                     key={i}
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ delay: 0.1 * i }}
-                                    className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-6"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ delay: 0.05 * i }}
+                                    className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-6"
                                 >
-                                    <div className={`w-14 h-14 rounded-2xl ${spec.color} flex items-center justify-center`}>
+                                    <div className={`w-14 h-14 rounded-xl ${spec.color} flex items-center justify-center`}>
                                         <spec.icon size={28} />
                                     </div>
                                     <div>
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 block">{spec.label}</label>
-                                        <span className="text-lg font-black text-gray-900 italic">{spec.value}</span>
+                                        <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1 block">{spec.label}</label>
+                                        <span className="text-lg font-bold text-slate-900">{spec.value}</span>
                                     </div>
                                 </motion.div>
                             ))}
@@ -135,14 +135,14 @@ const BookingSummaryPage = () => {
 
                         {/* Cost Breakdown */}
                         <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.4 }}
-                            className="bg-white rounded-3xl p-10 shadow-sm border border-gray-100"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.2 }}
+                            className="bg-white rounded-2xl p-10 shadow-sm border border-slate-100"
                         >
-                            <div className="flex justify-between items-center mb-10 pb-4 border-b border-gray-50">
-                                <h3 className="text-xl font-black italic uppercase tracking-tight">Cost Breakdown</h3>
-                                <span className="text-[10px] font-bold text-gray-400">CHARGES IN INR (₹)</span>
+                            <div className="flex justify-between items-center mb-10 pb-4 border-b border-slate-50">
+                                <h3 className="text-lg font-bold text-slate-900">Cost Breakdown</h3>
+                                <span className="text-xs font-semibold text-slate-400">CHARGES IN INR (₹)</span>
                             </div>
 
                             <div className="space-y-8">
@@ -154,12 +154,12 @@ const BookingSummaryPage = () => {
                                 ].map((item, i) => (
                                     <div key={i} className="flex justify-between items-center group">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-red-50 group-hover:text-red-600 transition-all">
+                                            <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-red-50 group-hover:text-red-600 transition-all">
                                                 <item.icon size={20} />
                                             </div>
-                                            <span className="font-bold text-gray-600">{item.label}</span>
+                                            <span className="font-medium text-slate-600">{item.label}</span>
                                         </div>
-                                        <span className="font-black text-lg italic text-gray-900">{item.amount}</span>
+                                        <span className="font-bold text-lg text-slate-900">{item.amount}</span>
                                     </div>
                                 ))}
                             </div>
@@ -169,30 +169,30 @@ const BookingSummaryPage = () => {
                     {/* Right Side: Price Sidebar */}
                     <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
                         <motion.div
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            className="bg-white rounded-3xl p-10 shadow-xl shadow-black/5 border border-gray-100 space-y-10"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="bg-white rounded-2xl p-10 shadow-lg shadow-black/5 border border-slate-100 space-y-10"
                         >
                             <div className="flex flex-col items-center gap-4 py-4">
-                                <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center text-red-600">
+                                <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center text-red-600">
                                     <Check size={32} />
                                 </div>
                                 <div className="text-center space-y-1">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Total Estimated Price</label>
-                                    <h1 className="text-4xl font-black italic text-gray-900 tracking-tighter">₹ 1,978.86</h1>
-                                    <p className="text-[9px] font-bold text-gray-400 uppercase">(Inclusive of all applicable taxes & GST)</p>
+                                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Total Estimated Price</label>
+                                    <h1 className="text-4xl font-bold text-slate-900">₹ 1,978.86</h1>
+                                    <p className="text-[10px] font-medium text-slate-400 uppercase">(Inclusive of all applicable taxes & GST)</p>
                                 </div>
                             </div>
 
                             <div className="space-y-4">
                                 <button
                                     onClick={handleProceed}
-                                    className="w-full bg-[#FF3B30] text-white py-5 rounded-2xl font-black italic uppercase tracking-widest text-sm flex items-center justify-center gap-3 transition-all hover:bg-black group shadow-xl shadow-red-100"
+                                    className="w-full bg-[#FF3B30] text-white py-5 rounded-xl font-bold text-sm uppercase tracking-wider flex items-center justify-center gap-3 transition-all hover:bg-black group shadow-sm"
                                 >
                                     Proceed for Booking
                                     <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform" />
                                 </button>
-                                <button className="w-full bg-white text-gray-900 py-5 rounded-2xl font-black italic uppercase tracking-widest text-sm border-2 border-gray-50 hover:bg-gray-50 transition-all">
+                                <button className="w-full bg-white text-slate-900 py-5 rounded-xl font-bold text-sm uppercase tracking-wider border border-slate-200 hover:bg-slate-50 transition-all">
                                     Save for Later
                                 </button>
                             </div>
@@ -210,21 +210,21 @@ const BookingSummaryPage = () => {
                         </motion.div>
 
                         <motion.div
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.6 }}
-                            className="bg-white rounded-3xl p-8 border border-gray-100 space-y-6"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.4 }}
+                            className="bg-white rounded-2xl p-8 border border-slate-100 space-y-6"
                         >
                             <div className="flex items-start gap-4">
-                                <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center flex-shrink-0">
+                                <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
                                     <HelpCircle size={24} />
                                 </div>
                                 <div className="space-y-1">
-                                    <h4 className="font-black italic text-sm">Need help with this quote?</h4>
-                                    <p className="text-xs text-gray-400 leading-relaxed font-bold">Our logistics experts are available 24/7 to assist you with any questions.</p>
+                                    <h4 className="font-bold text-sm">Need help with this quote?</h4>
+                                    <p className="text-xs text-slate-500 leading-relaxed font-medium">Our logistics experts are available 24/7 to assist you with any questions.</p>
                                 </div>
                             </div>
-                            <button className="flex items-center gap-2 text-red-600 font-black italic text-xs uppercase hover:underline">
+                            <button className="flex items-center gap-2 text-red-600 font-bold text-xs uppercase hover:underline">
                                 <MessageSquare size={16} />
                                 Chat with Support
                             </button>
@@ -246,30 +246,30 @@ const BookingSummaryPage = () => {
                         />
 
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="relative bg-white w-full max-w-[500px] rounded-[3rem] overflow-hidden shadow-2xl"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="relative bg-white w-full max-w-[500px] rounded-2xl overflow-hidden shadow-2xl"
                         >
                             <div className="p-10 space-y-10">
                                 <div className="flex items-center justify-between">
-                                    <h3 className="text-xl font-black italic uppercase tracking-tight">Activate Your Account</h3>
-                                    <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-black transition-colors">
+                                    <h3 className="text-xl font-bold text-slate-900 uppercase">Activate Your Account</h3>
+                                    <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-black transition-colors">
                                         <X size={24} />
                                     </button>
                                 </div>
 
                                 {/* Stepper */}
                                 <div className="flex items-center justify-between relative px-4">
-                                    <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-100 -translate-y-1/2 z-0"></div>
+                                    <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-slate-100 -translate-y-1/2 z-0"></div>
                                     {[1, 2, 3].map((step) => (
                                         <div key={step} className="relative z-10 flex flex-col items-center gap-2">
-                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ${modalStep >= step ? 'bg-red-600 text-white shadow-lg shadow-red-100' : 'bg-gray-100 text-gray-400'}`}>
+                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ${modalStep >= step ? 'bg-red-600 text-white shadow-sm' : 'bg-slate-100 text-slate-400'}`}>
                                                 {step === 1 && <User size={18} />}
                                                 {step === 2 && <Briefcase size={18} />}
                                                 {step === 3 && <Check size={18} />}
                                             </div>
-                                            <span className={`text-[9px] font-black uppercase tracking-widest ${modalStep >= step ? 'text-red-600' : 'text-gray-400'}`}>
+                                            <span className={`text-[10px] font-semibold uppercase tracking-wider ${modalStep >= step ? 'text-red-600' : 'text-slate-400'}`}>
                                                 {step === 1 && 'Identity'}
                                                 {step === 2 && 'Business'}
                                                 {step === 3 && 'Confirm'}
@@ -300,17 +300,17 @@ const BookingSummaryPage = () => {
                                     )}
 
                                     {modalStep === 2 && (
-                                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                             <div className="flex gap-4">
                                                 <button
                                                     onClick={() => setAccountType('Individual')}
-                                                    className={`flex-1 py-4 rounded-2xl font-black italic uppercase text-xs tracking-widest transition-all ${accountType === 'Individual' ? 'bg-red-50 text-red-600 border-2 border-red-200' : 'bg-gray-50 text-gray-400 border-2 border-transparent'}`}
+                                                    className={`flex-1 py-4 rounded-xl font-bold uppercase text-xs tracking-wider transition-all ${accountType === 'Individual' ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-slate-50 text-slate-400 border border-transparent'}`}
                                                 >
                                                     Individual
                                                 </button>
                                                 <button
                                                     onClick={() => setAccountType('Business')}
-                                                    className={`flex-1 py-4 rounded-2xl font-black italic uppercase text-xs tracking-widest transition-all ${accountType === 'Business' ? 'bg-red-50 text-red-600 border-2 border-red-200' : 'bg-gray-50 text-gray-400 border-2 border-transparent'}`}
+                                                    className={`flex-1 py-4 rounded-xl font-bold uppercase text-xs tracking-wider transition-all ${accountType === 'Business' ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-slate-50 text-slate-400 border border-transparent'}`}
                                                 >
                                                     Business
                                                 </button>
@@ -365,14 +365,14 @@ const BookingSummaryPage = () => {
                                     {modalStep > 1 && (
                                         <button
                                             onClick={handlePrevStep}
-                                            className="w-20 flex items-center justify-center bg-black text-white rounded-2xl transition-all hover:bg-gray-800"
+                                            className="w-20 flex items-center justify-center bg-slate-900 text-white rounded-xl transition-all hover:bg-slate-800"
                                         >
                                             <ArrowLeft size={20} />
                                         </button>
                                     )}
                                     <button
                                         onClick={handleNextStep}
-                                        className="flex-grow bg-red-600 hover:bg-red-700 text-white py-5 rounded-3xl font-black italic uppercase tracking-[0.2em] text-sm shadow-xl shadow-red-100 transition-all flex items-center justify-center gap-3 active:scale-95"
+                                        className="flex-grow bg-[#FF3B30] hover:bg-red-700 text-white py-5 rounded-xl font-bold uppercase tracking-wider text-sm shadow-sm transition-all flex items-center justify-center gap-3 active:scale-95"
                                     >
                                         {modalStep === 3 ? 'Activate Account' : 'Continue'}
                                         <ArrowRight size={20} />

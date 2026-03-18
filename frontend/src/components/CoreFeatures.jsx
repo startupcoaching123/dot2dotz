@@ -1,88 +1,103 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { Sparkles, ShieldCheck, Globe, Handshake } from 'lucide-react';
 
 const CoreFeatures = () => {
     const features = [
         {
-            icon: <Sparkles size={32} className="text-red-600" />,
+            icon: Sparkles,
             title: "Hasslefree Shipment",
-            description: "Seamless logistics solutions for all shipment sizes across India.",
+            description: "Seamless logistics solutions for all shipment sizes across India, handled with care.",
         },
         {
-            icon: <ShieldCheck size={32} className="text-red-600" />,
+            icon: ShieldCheck,
             title: "Safety & Reliability",
-            description: "Advanced security tools ensure safe and reliable deliveries.",
+            description: "Advanced security protocols and verified partners ensure your cargo is always safe.",
         },
         {
-            icon: <Globe size={32} className="text-red-600" />,
+            icon: Globe,
             title: "Pan-India Network",
-            description: "19,100+ pin codes & 4,000+ cities covered nationwide.",
+            description: "Coverage across 19,100+ pin codes and 4,000+ cities for nationwide reach.",
         },
         {
-            icon: <Handshake size={32} className="text-red-600" />,
+            icon: Handshake,
             title: "Trusted Partner",
-            description: "Transparent pricing & complete trust throughout your journey.",
+            description: "Transparent pricing and consistent communication throughout your shipping journey.",
         },
     ];
 
     return (
-        <section className="py-24 bg-white relative overflow-hidden">
-            {/* Speed Background Patterns */}
-            <div className="absolute top-0 right-0 w-96 h-96 bg-red-50/30 rounded-full filter blur-3xl opacity-50 -translate-y-1/2 translate-x-1/2"></div>
-            <div className="absolute bottom-0 left-0 w-96 h-96 bg-gray-50/50 rounded-full filter blur-3xl opacity-50 translate-y-1/2 -translate-x-1/2"></div>
-
-            <div className="max-w-[1440px] mx-auto px-6 md:px-10 relative z-10">
+        <section className="py-24 bg-white relative overflow-hidden font-sans">
+            <div className="max-w-6xl mx-auto px-4 relative z-10">
                 {/* Header */}
                 <div className="text-center mb-20 space-y-4">
-                    <h2 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter text-black">
-                        Why Choose <span className="text-red-600">Dot2Dotz?</span>
-                    </h2>
-                    <p className="text-gray-500 font-bold italic uppercase tracking-widest text-sm max-w-2xl mx-auto leading-relaxed">
-                        We combine technology with reliability to deliver excellence in every shipment
-                    </p>
-                    <div className="flex justify-center gap-1.5 pt-2">
-                        <div className="w-12 h-1 bg-red-600 rounded-full transform skew-x-[-20deg]"></div>
-                        <div className="w-4 h-1 bg-black rounded-full transform skew-x-[-20deg]"></div>
-                    </div>
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true }}
+                        className="inline-flex items-center px-4 py-1.5 bg-slate-50 rounded-full border border-slate-100"
+                    >
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Core Values</span>
+                    </motion.div>
+                    <motion.h2
+                        initial={{ opacity: 0, y: 10 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.1 }}
+                        className="text-4xl md:text-5xl font-bold text-slate-800 tracking-tight"
+                    >
+                        Why Choose <span className="text-red-500">Dot2Dotz?</span>
+                    </motion.h2>
+                    <motion.p
+                        initial={{ opacity: 0, y: 10 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.2 }}
+                        className="text-slate-500 max-w-2xl mx-auto font-medium"
+                    >
+                        We combine cutting-edge technology with operational reliability to deliver excellence in every shipment.
+                    </motion.p>
                 </div>
 
                 {/* Features Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                    {features.map((feature, index) => (
-                        <div
-                            key={index}
-                            className="group p-10 bg-white rounded-[2rem] border border-gray-100 shadow-[0_10px_30px_rgba(0,0,0,0.02)] hover:shadow-[30px_30px_0_rgba(220,38,38,0.03)] transition-all duration-500 transform hover:translate-y-[-10px] hover:skew-y-[-1deg]"
-                        >
-                            <div className="space-y-8">
-                                {/* Icon with Speed Glow */}
-                                <div className="relative w-16 h-16 flex items-center justify-center bg-gray-50 rounded-2xl group-hover:bg-black transition-colors duration-500 overflow-hidden">
-                                    <div className="relative z-10 group-hover:text-white transition-colors duration-500 group-hover:scale-110">
-                                        {feature.icon}
+                    {features.map((feature, index) => {
+                        const Icon = feature.icon;
+                        return (
+                            <motion.div
+                                key={index}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.4, delay: index * 0.1 }}
+                                className="group p-10 bg-white rounded-3xl border border-slate-200 shadow-sm transition-all duration-300 hover:shadow-xl hover:border-slate-300"
+                            >
+                                <div className="space-y-6">
+                                    <div className="relative w-14 h-14 flex items-center justify-center bg-slate-50 rounded-2xl text-red-500 group-hover:bg-red-500 group-hover:text-white transition-all duration-300">
+                                        <Icon size={24} strokeWidth={2.5} />
                                     </div>
-                                    <div className="absolute inset-0 bg-red-600 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500 ease-out opacity-20 group-hover:opacity-10"></div>
-                                </div>
 
-                                <div className="space-y-4">
-                                    <h3 className="text-xl font-black italic uppercase tracking-tight text-black flex flex-col">
-                                        <span className="w-8 h-1 bg-red-600 mb-3 opacity-0 group-hover:opacity-100 transition-all duration-500 w-0 group-hover:w-12 rounded-full"></span>
-                                        {feature.title}
-                                    </h3>
-                                    <p className="text-gray-500 text-sm font-bold italic leading-relaxed group-hover:text-gray-900 transition-colors">
-                                        {feature.description}
-                                    </p>
+                                    <div className="space-y-3">
+                                        <h3 className="text-xl font-bold text-slate-800">
+                                            {feature.title}
+                                        </h3>
+                                        <p className="text-slate-500 text-sm font-medium leading-relaxed group-hover:text-slate-600 transition-colors">
+                                            {feature.description}
+                                        </p>
+                                    </div>
                                 </div>
-
-                                {/* Speed Line Decoration */}
-                                <div className="flex gap-1 opacity-20 group-hover:opacity-100 transition-opacity">
-                                    <div className="w-8 h-1 bg-red-600 rounded-full"></div>
-                                    <div className="w-2 h-1 bg-gray-200 rounded-full"></div>
-                                    <div className="w-2 h-1 bg-gray-200 rounded-full"></div>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
+                            </motion.div>
+                        );
+                    })}
                 </div>
             </div>
+
+            <style>{`
+                @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+                .font-sans {
+                    font-family: 'Poppins', sans-serif;
+                }
+            `}</style>
         </section>
     );
 };
