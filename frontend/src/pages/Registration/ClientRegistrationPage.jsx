@@ -1,370 +1,289 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  User, Mail, Phone, Building2, MapPin, 
-  Shield, CheckCircle2, ArrowRight, ArrowLeft, 
-  Lock, Globe, FileText, Smartphone 
+    User, 
+    Mail, 
+    Smartphone, 
+    Building2, 
+    Check, 
+    ArrowRight, 
+    ArrowLeft, 
+    Shield, 
+    Briefcase,
+    X,
+    Eye,
+    EyeOff
 } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL, AUTH_ENDPOINTS } from '../../api/endpoints';
+import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../components/Toast/Toast';
 
 export default function ClientRegistrationPage() {
-  const navigate = useNavigate();
-  const [step, setStep] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [error, setError] = useState('');
+    const navigate = useNavigate();
+    const { login } = useAuth();
+    const { success, error } = useToast();
+    const [step, setStep] = useState(1);
+    const [isLoading, setIsLoading] = useState(false);
+    const [accountType, setAccountType] = useState('Business');
+    const [showPassword, setShowPassword] = useState(false);
 
-  const [formData, setFormData] = useState({
-    clientName: '',
-    mobile: '',
-    phone: '',
-    mobile2: '',
-    email: '',
-    companyType: '',
-    companyName: '',
-    panNo: '',
-    gst: '',
-    aadhaar: '',
-    registerAddress: '',
-    registerState: '',
-    registerCity: '',
-    registerPinCode: '',
-    referBy: '',
-    password: ''
-  });
+    const [formData, setFormData] = useState({
+        aadharNumber: '',
+        otp: '',
+        businessName: '',
+        email: '',
+        panNumber: '',
+        gstNumber: '',
+        password: ''
+    });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
 
-    // Restriction for mobile numbers (10 digits)
-    if (['mobile', 'phone', 'mobile2'].includes(name)) {
-      const val = value.replace(/\D/g, '').slice(0, 10);
-      setFormData(prev => ({ ...prev, [name]: val }));
-      return;
-    }
+    const nextStep = () => setStep(prev => prev + 1);
+    const prevStep = () => setStep(prev => Math.max(prev - 1, 1));
 
-    // Restriction for pincode (6 digits)
-    if (name === 'registerPinCode') {
-      const val = value.replace(/\D/g, '').slice(0, 6);
-      setFormData(prev => ({ ...prev, [name]: val }));
-      return;
-    }
+    const handleSubmit = async (e) => {
+        if (e) e.preventDefault();
+        if (step < 3) {
+            nextStep();
+            return;
+        }
 
-    // Restriction for Aadhaar (12 digits)
-    if (name === 'aadhaar') {
-      const val = value.replace(/\D/g, '').slice(0, 12);
-      setFormData(prev => ({ ...prev, [name]: val }));
-      return;
-    }
+        setIsLoading(true);
+        try {
+            const res = await fetch(`${API_BASE_URL}${AUTH_ENDPOINTS.CLIENT_REGISTER}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...formData,
+                    clientName: formData.businessName, // Map to backend expected field
+                    companyType: accountType,
+                    mobile: '9876543210', // Placeholder or captured from OTP step
+                }),
+            });
 
-    setFormData(prev => ({ ...prev, [name]: value }));
-    if (error) setError('');
-  };
+            const data = await res.json();
+            if (res.ok) {
+                success('Account activated successfully!');
+                login(data.user || data.data || data);
+                setTimeout(() => navigate('/dashboard/client'), 1500);
+            } else {
+                throw new Error(data?.message || 'Registration failed');
+            }
+        } catch (err) {
+            error(err.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-  const validateForm = () => {
-    if (!formData.clientName) return 'Client Name is required';
-    if (!formData.email) return 'Email is required';
-    if (!formData.mobile) return 'Mobile Number is required';
-    if (!/^[6-9]\d{9}$/.test(formData.mobile)) return 'Mobile must be 10 digits starting with 6-9';
-    if (formData.phone && formData.phone.length !== 10) return 'Phone must be exactly 10 digits';
-    if (formData.password && formData.password.length < 6) return 'Password must be at least 6 characters';
-    
-    if (step >= 2) {
-      if (!formData.companyName) return 'Company Name is required';
-      if (!formData.panNo) return 'PAN Number is required';
-      if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.panNo)) return 'Invalid PAN format';
-      if (formData.aadhaar && formData.aadhaar.length !== 12) return 'Aadhaar must be exactly 12 digits';
-    }
-
-    if (step >= 3) {
-      if (!formData.registerAddress) return 'Address is required';
-      if (!formData.registerCity) return 'City is required';
-      if (!formData.registerPinCode) return 'Pincode is required';
-      if (formData.registerPinCode.length !== 6) return 'Pincode must be exactly 6 digits';
-    }
-
-    return null;
-  };
-
-  const nextStep = () => {
-    const err = validateForm();
-    if (err) {
-      setError(err);
-      return;
-    }
-    setStep(prev => Math.min(prev + 1, 3));
-  };
-
-  const prevStep = () => setStep(prev => Math.max(prev - 1, 1));
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-
-    const err = validateForm();
-    if (err) {
-      setError(err);
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      console.log('Submitting registration with data:', formData);
-      const res = await fetch(`${API_BASE_URL}${AUTH_ENDPOINTS.CLIENT_REGISTER}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        console.error('Registration error Response:', data);
-        throw new Error(data?.message || data?.error || 'Registration failed');
-      }
-
-      setIsSuccess(true);
-    } catch (err) {
-      console.error('Submission catch error:', err);
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const containerVariants = {
-    hidden: { opacity: 0, scale: 0.98 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 0.4 } },
-    exit: { opacity: 0, scale: 0.98 }
-  };
-
-  if (isSuccess) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 pt-24 pb-20">
-        <motion.div 
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="w-full max-w-xl bg-white rounded-[2.5rem] shadow-2xl p-12 text-center border border-gray-100"
-        >
-          <div className="w-24 h-24 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-8 animate-bounce">
-            <CheckCircle2 size={56} />
-          </div>
-          <h2 className="text-4xl font-black italic tracking-tighter text-gray-900 mb-4 uppercase italic">Registration Successful!</h2>
-          <p className="text-gray-500 text-lg mb-10 leading-relaxed font-medium">Your request for onboarding has been received. Our operations team will review your details and contact you shortly.</p>
-          <button
-            onClick={() => navigate('/login/client')}
-            className="w-full py-5 bg-black text-white rounded-[1.5rem] font-black italic uppercase tracking-widest text-sm hover:bg-red-600 transition-all flex items-center justify-center gap-3 shadow-2xl shadow-black/10 transition-all hover:-translate-y-1"
-          >
-            Go to Login
-            <ArrowRight size={20} />
-          </button>
-        </motion.div>
-      </div>
-    );
-  }
+        <div className="min-h-screen bg-[#F0F2F5] flex items-center justify-center p-6 font-sans selection:bg-red-600 selection:text-white">
+            <div className="w-full max-w-[540px] bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/50 overflow-hidden relative">
+                
+                {/* Header branding */}
+                <div className="absolute top-0 left-0 right-0 h-2 bg-red-600"></div>
+                
+                <div className="p-12 space-y-10">
+                    <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                            <h2 className="text-2xl font-black text-slate-900 italic tracking-tight uppercase leading-none">Activate Your Account</h2>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 block">Initialize your logistics profile</p>
+                        </div>
+                        <img src="/logo.png" alt="Dot2Dotz" className="h-6 grayscale opacity-20" />
+                    </div>
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8 pt-24 pb-20">
-      <div className="max-w-4xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="text-center relative">
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-block px-4 py-1.5 bg-red-50 text-red-600 rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-4 border border-red-100"
-          >
-            Become a partner
-          </motion.div>
-          <h1 className="text-5xl font-black italic tracking-tighter text-gray-900 uppercase">Client Registration</h1>
-          <p className="mt-4 text-gray-500 font-medium text-lg">Streamline your freight operations with our platform.</p>
-        </div>
+                    {/* Stepper */}
+                    <div className="flex items-center justify-between relative px-4">
+                        <div className="absolute top-1/2 left-0 right-0 h-px bg-slate-100 -translate-y-1/2 z-0"></div>
+                        {[1, 2, 3].map((s) => (
+                            <div key={s} className="relative z-10 flex flex-col items-center gap-3 bg-white px-2">
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 border-2 ${step >= s ? 'bg-red-600 text-white border-red-600 shadow-lg shadow-red-200' : 'bg-white text-slate-300 border-slate-100'}`}>
+                                    {s === 1 && <User size={20} />}
+                                    {s === 2 && <Briefcase size={20} />}
+                                    {s === 3 && <Check size={20} />}
+                                </div>
+                                <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${step >= s ? 'text-red-600' : 'text-slate-300'}`}>
+                                    {s === 1 && 'Identity'}
+                                    {s === 2 && 'Business'}
+                                    {s === 3 && 'Confirm'}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
 
-        {/* Multi-step indicator */}
-        <div className="flex justify-center items-center gap-4 max-w-xs mx-auto">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="flex items-center gap-2">
-              <div className={`h-2.5 rounded-full transition-all duration-500 ${step >= i ? 'w-12 bg-red-600' : 'w-2.5 bg-gray-200'}`} />
-            </div>
-          ))}
-        </div>
+                    {/* Form Content */}
+                    <div className="py-2 min-h-[340px]">
+                        <AnimatePresence mode="wait">
+                            {step === 1 && (
+                                <motion.div 
+                                    key="step1"
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    className="space-y-10"
+                                >
+                                    <div className="space-y-6">
+                                        <div className="space-y-3">
+                                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] ml-1 italic">Aadhar Number</label>
+                                            <input 
+                                                name="aadharNumber"
+                                                value={formData.aadharNumber}
+                                                onChange={handleChange}
+                                                placeholder="Enter 12-digit Aadhaar number" 
+                                                className="w-full px-6 py-5 bg-white border-2 border-red-500 rounded-2xl font-bold text-slate-900 focus:outline-none italic shadow-inner text-lg tracking-widest" 
+                                            />
+                                        </div>
+                                        <div className="space-y-3">
+                                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] ml-1 italic">Mobile OTP</label>
+                                            <div className="relative">
+                                                <input 
+                                                    name="otp"
+                                                    value={formData.otp}
+                                                    onChange={handleChange}
+                                                    placeholder="Enter OTP" 
+                                                    className="w-full px-6 py-5 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-900 focus:outline-none italic text-lg" 
+                                                />
+                                                <button type="button" className="absolute right-2 top-2 bottom-2 px-6 bg-slate-900 text-white rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-red-600 transition-all">Send OTP</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                                        <p className="text-[10px] text-slate-400 italic font-medium leading-relaxed text-center">Your Aadhaar details will be verified securely. We do not store your Aadhaar number.</p>
+                                    </div>
+                                </motion.div>
+                            )}
 
-        <motion.div
-          key={step}
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          exit="exit"
-          className="bg-white rounded-[2.5rem] shadow-2xl p-10 sm:p-12 border border-gray-100 relative overflow-hidden"
-        >
-          {/* Decorative element */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gray-50 rounded-bl-full opacity-50" />
+                            {step === 2 && (
+                                <motion.div 
+                                    key="step2"
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    className="space-y-8"
+                                >
+                                    <div>
+                                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] ml-1 italic mb-4 block">Account Type</label>
+                                        <div className="flex gap-4 p-1 bg-slate-50 rounded-[1.5rem] border border-slate-100">
+                                            {['Individual', 'Business'].map(type => (
+                                                <button
+                                                    key={type}
+                                                    onClick={() => setAccountType(type)}
+                                                    className={`flex-1 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all ${accountType === type ? 'bg-white text-red-600 shadow-md scale-[1.02]' : 'bg-transparent text-slate-400 hover:text-slate-600'}`}
+                                                >
+                                                    {type}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
 
-          {error && (
-            <div className="mb-8 p-6 bg-red-50 border border-red-100 text-red-600 text-sm rounded-2xl font-bold italic flex items-center gap-3">
-              <Shield size={20} />
-              {error}
-            </div>
-          )}
+                                    <div className="space-y-5">
+                                        <Field label="Business Name" name="businessName" placeholder="Enter Business name" value={formData.businessName} onChange={handleChange} />
+                                        <Field label="Email Address" name="email" type="email" placeholder="Enter email address" value={formData.email} onChange={handleChange} />
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <Field label="PAN Card Number" name="panNumber" placeholder="Enter PAN number" value={formData.panNumber} onChange={handleChange} />
+                                            {accountType === 'Business' && (
+                                                <Field label="GST Number" name="gstNumber" placeholder="Enter GST number" value={formData.gstNumber} onChange={handleChange} />
+                                            )}
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] ml-1 italic">Security Password</label>
+                                            <div className="relative">
+                                                <input 
+                                                    name="password"
+                                                    type={showPassword ? "text" : "password"}
+                                                    value={formData.password}
+                                                    onChange={handleChange}
+                                                    placeholder="••••••••" 
+                                                    className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-900 focus:outline-none italic" 
+                                                />
+                                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-900 transition-colors">
+                                                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
 
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <AnimatePresence mode="wait">
-              {step === 1 && (
-                <motion.div
-                  key="step1"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="space-y-8"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-1.5 h-6 bg-red-600 rounded-full" />
-                    <h3 className="text-xl font-black italic uppercase tracking-tighter">Primary Information</h3>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <Field label="Client Name" icon={User} name="clientName" value={formData.clientName} onChange={handleChange} placeholder="Full Name" />
-                    <Field label="Email Address" icon={Mail} name="email" type="email" value={formData.email} onChange={handleChange} placeholder="work@company.com" />
-                    <Field label="Mobile Number" icon={Smartphone} name="mobile" value={formData.mobile} onChange={handleChange} placeholder="Primary Mobile" />
-                    <Field label="Password" icon={Lock} name="password" type="password" value={formData.password} onChange={handleChange} placeholder="Min. 8 characters" />
-                    <Field label="Landline/Phone" icon={Phone} name="phone" value={formData.phone} onChange={handleChange} placeholder="Office Phone" />
-                    <Field label="Secondary Mobile" icon={Smartphone} name="mobile2" value={formData.mobile2} onChange={handleChange} placeholder="Secondary Mobile" />
-                  </div>
-                </motion.div>
-              )}
+                            {step === 3 && (
+                                <motion.div 
+                                    key="step3"
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    className="space-y-8 py-4"
+                                >
+                                    <div className="bg-slate-50/50 rounded-[2rem] p-8 border border-slate-100 space-y-6">
+                                        <h4 className="text-[10px] font-black uppercase text-red-600 italic tracking-[0.2em] mb-4">Final Confirmation</h4>
+                                        <div className="space-y-4">
+                                            <SummaryRow label="Account Entity" value={accountType} />
+                                            <SummaryRow label="Name/Business" value={formData.businessName} />
+                                            <SummaryRow label="Contact Email" value={formData.email} />
+                                            <SummaryRow label="PAN Identification" value={formData.panNumber} />
+                                            {accountType === 'Business' && <SummaryRow label="GST Registration" value={formData.gstNumber} />}
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-4 p-5 bg-green-50 rounded-2xl border border-green-100 text-green-700">
+                                        <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm">
+                                            <Check size={16} />
+                                        </div>
+                                        <span className="text-[10px] font-black uppercase tracking-widest italic">Information sanity check complete</span>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
 
-              {step === 2 && (
-                <motion.div
-                  key="step2"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="space-y-8"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-1.5 h-6 bg-black rounded-full" />
-                    <h3 className="text-xl font-black italic uppercase tracking-tighter">Company & Compliance</h3>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <Field label="Company Name" icon={Building2} name="companyName" value={formData.companyName} onChange={handleChange} placeholder="Official Name" />
-                    <div className="space-y-2 group">
-                      <label className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] ml-1 group-focus-within:text-red-500 transition-colors">Company Type</label>
-                      <div className="relative">
-                        <Building2 className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-red-500 transition-colors" size={18} />
-                        <select 
-                          name="companyType"
-                          value={formData.companyType}
-                          onChange={handleChange}
-                          className="w-full pl-14 pr-6 py-4.5 bg-gray-50 border border-gray-100 rounded-2xl font-bold italic focus:outline-none focus:border-black focus:bg-white transition-all shadow-inner appearance-none"
+                    {/* Footer Actions */}
+                    <div className="flex gap-4 pt-6">
+                        {step > 1 && (
+                            <button
+                                onClick={prevStep}
+                                className="w-16 h-16 flex items-center justify-center bg-slate-900 text-white rounded-[1.5rem] transition-all hover:bg-slate-800 shadow-xl"
+                            >
+                                <ArrowLeft size={20} />
+                            </button>
+                        )}
+                        <button
+                            onClick={handleSubmit}
+                            disabled={isLoading}
+                            className="flex-grow bg-red-600 hover:bg-slate-900 text-white py-5 rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-xl shadow-red-200 transition-all flex items-center justify-center gap-3 active:scale-95 italic disabled:opacity-50"
                         >
-                          <option value="">Select Type</option>
-                          <option value="Proprietorship">Proprietorship</option>
-                          <option value="Partnership">Partnership</option>
-                          <option value="Private Limited">Private Limited</option>
-                          <option value="Public Limited">Public Limited</option>
-                        </select>
-                      </div>
+                            {isLoading ? (
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            ) : (
+                                <>
+                                    {step === 3 ? 'Complete Registration' : 'Continue'}
+                                    <ArrowRight size={20} />
+                                </>
+                            )}
+                        </button>
                     </div>
-                    <Field label="PAN Card Number" icon={FileText} name="panNo" value={formData.panNo} onChange={handleChange} placeholder="ABCDE1234F" />
-                    <Field label="GST Number" icon={Shield} name="gst" value={formData.gst} onChange={handleChange} placeholder="15 Digit GSTIN" />
-                    <Field label="Aadhaar Number" icon={Shield} name="aadhaar" value={formData.aadhaar} onChange={handleChange} placeholder="12 Digit Number" />
-                    <Field label="Referred By" icon={User} name="referBy" value={formData.referBy} onChange={handleChange} placeholder="Name or Email" />
-                  </div>
-                </motion.div>
-              )}
-
-              {step === 3 && (
-                <motion.div
-                  key="step3"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="space-y-8"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-1.5 h-6 bg-red-600 rounded-full" />
-                    <h3 className="text-xl font-black italic uppercase tracking-tighter">Registered Address</h3>
-                  </div>
-
-                  <div className="space-y-8">
-                    <Field label="Street Address" icon={MapPin} name="registerAddress" value={formData.registerAddress} onChange={handleChange} placeholder="Plot, Building, Area" textarea />
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                      <Field label="City" icon={Globe} name="registerCity" value={formData.registerCity} onChange={handleChange} placeholder="Mumbai" />
-                      <Field label="State" icon={Globe} name="registerState" value={formData.registerState} onChange={handleChange} placeholder="Maharashtra" />
-                      <Field label="Pincode" icon={MapPin} name="registerPinCode" value={formData.registerPinCode} onChange={handleChange} placeholder="400001" />
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Actions */}
-            <div className="flex gap-6 pt-4">
-              {step > 1 && (
-                <button
-                  type="button"
-                  onClick={prevStep}
-                  className="flex-1 py-5 bg-gray-50 text-gray-900 rounded-[1.5rem] border border-gray-100 font-bold italic uppercase tracking-widest text-[10px] hover:bg-gray-100 transition-all flex items-center justify-center gap-4"
-                >
-                  <ArrowLeft size={16} />
-                  Back
-                </button>
-              )}
-              {step < 3 ? (
-                <button
-                  type="button"
-                  onClick={nextStep}
-                  className="flex-[2] py-5 bg-black text-white rounded-[1.5rem] font-bold italic uppercase tracking-widest text-[10px] hover:bg-red-600 transition-all flex items-center justify-center gap-4 shadow-2xl shadow-black/10 transition-all hover:-translate-y-1"
-                >
-                  Save & Continue
-                  <ArrowRight size={16} />
-                </button>
-              ) : (
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="flex-[2] py-5 bg-red-600 text-white rounded-[1.5rem] font-black italic uppercase tracking-widest text-xs hover:bg-black transition-all flex items-center justify-center gap-4 shadow-2xl shadow-red-200 transition-all hover:-translate-y-1 disabled:opacity-50"
-                >
-                  {isLoading ? (
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      Complete Registration
-                      <CheckCircle2 size={18} />
-                    </>
-                  )}
-                </button>
-              )}
+                </div>
             </div>
-          </form>
-        </motion.div>
-      </div>
-    </div>
-  );
+        </div>
+    );
 }
 
-function Field({ label, icon: Icon, textarea, name, type = "text", ...props }) {
-  return (
-    <div className="space-y-2 group">
-      <label className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] ml-1 group-focus-within:text-red-500 transition-colors uppercase italic">{label}</label>
-      <div className="relative">
-        <Icon className="absolute left-5 top-5 text-gray-400 group-focus-within:text-red-500 transition-colors" size={18} />
-        {textarea ? (
-          <textarea
-            name={name}
-            className="w-full pl-14 pr-6 py-4.5 bg-gray-50 border border-gray-100 rounded-3xl font-bold italic focus:outline-none focus:border-black focus:bg-white transition-all shadow-inner h-32 resize-none pt-4"
-            {...props}
-          />
-        ) : (
-          <input
-            name={name}
-            type={type}
-            className="w-full pl-14 pr-6 py-4.5 bg-gray-50 border border-gray-100 rounded-2xl font-bold italic focus:outline-none focus:border-black focus:bg-white transition-all shadow-inner"
-            {...props}
-          />
-        )}
-      </div>
-    </div>
-  );
+function Field({ label, ...props }) {
+    return (
+        <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] ml-1 italic">{label}</label>
+            <input {...props} className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-900 focus:outline-none italic" />
+        </div>
+    );
+}
+
+function SummaryRow({ label, value }) {
+    return (
+        <div className="flex justify-between items-center text-sm border-b border-white pb-3 last:border-0 last:pb-0">
+            <span className="text-slate-400 font-bold uppercase text-[9px] tracking-widest">{label}</span>
+            <span className="text-slate-900 font-black italic text-[11px] uppercase tracking-tighter">{value || 'Not provided'}</span>
+        </div>
+    );
 }

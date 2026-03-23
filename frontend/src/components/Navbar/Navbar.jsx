@@ -79,6 +79,22 @@ const Navbar = () => {
     setActiveDesktopDropdown(activeDesktopDropdown === id ? null : id);
   };
 
+  const getDashboardPath = () => {
+    const roleDashboardMap = {
+      'SUPER_ADMIN': '/dashboard/super-admin',
+      'ADMIN_OPERATIONAL': '/dashboard/admin-operational',
+      'ADMIN_FINANCE': '/dashboard/admin-finance',
+      'CLIENT': '/dashboard/client',
+      'CLIENT_OWNER': '/dashboard/client',
+      'VENDOR': '/dashboard/vendor',
+      'VENDOR_OWNER': '/dashboard/vendor',
+      'CLIENT_STAFF': '/dashboard/client-staff',
+      'VENDOR_STAFF': '/dashboard/vendor-staff',
+    };
+    const userRole = (user?.role || user?.userType || "").toUpperCase();
+    return roleDashboardMap[userRole] || "/dashboard";
+  };
+
   const isTransparent = location.pathname === '/' && !isScrolled;
   const textColorClass = isTransparent ? "text-white hover:text-red-500" : "text-slate-800 hover:text-red-600";
   const borderColorClass = isTransparent ? "border-white/30 text-white hover:bg-white hover:text-black" : "border-slate-800 text-slate-800 hover:bg-slate-900 hover:text-white";
@@ -170,7 +186,7 @@ const Navbar = () => {
               {isAuthenticated ? (
                 <div className="flex items-center gap-4">
                   <Link
-                    to="/dashboard"
+                    to={getDashboardPath()}
                     className={`flex items-center gap-2 px-5 py-2 font-semibold transition ${textColorClass}`}
                   >
                     <LayoutDashboard size={18} />
@@ -336,54 +352,82 @@ const Navbar = () => {
 
           {/* CTA Button (Mobile Footer) */}
           <div className="p-6 border-t border-gray-100 space-y-3">
-            <div className="border-b border-gray-200">
-              <button
-                onClick={() => setMobileDropdowns(prev => ({ ...prev, login: !prev.login }))}
-                className="flex items-center justify-between w-full p-4 text-[#253F5E] font-medium hover:bg-gradient-to-r from-orange-500 to-orange-600/10 transition"
-              >
-                <span>Login</span>
-                {mobileDropdowns.login ? (
-                  <ChevronUp className="w-5 h-5 text-red-600" />
-                ) : (
-                  <ChevronDown className="w-5 h-5 text-red-600" />
-                )}
-              </button>
-              {mobileDropdowns.login && (
-                <div className="ml-4 mb-2 space-y-1 bg-slate-50 rounded-lg p-2">
-                  {[
-                    { path: '/login/super-admin', label: 'Super Admin' },
-                    { path: '/login/admin-operational', label: 'Operational Admin' },
-                    { path: '/login/admin-finance', label: 'Finance Admin' },
-                    { path: '/login/client', label: 'Client Owner' },
-                    { path: '/login/client-staff', label: 'Client Staff' },
-                    { path: '/login/vendor', label: 'Vendor Owner' },
-                    { path: '/login/vendor-staff', label: 'Vendor Staff' },
-                  ].map((item) => (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      className="block px-4 py-3 text-slate-800 hover:text-red-600 hover:bg-red-50 rounded-lg transition text-sm"
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        setMobileDropdowns({});
-                      }}
-                    >
-                      <div className="flex items-center">
-                        <ChevronRight className="w-4 h-4 mr-2 text-red-600" />
-                        Login as {item.label}
-                      </div>
-                    </Link>
-                  ))}
+            {isAuthenticated ? (
+              <div className="space-y-1">
+                <Link
+                  to={getDashboardPath()}
+                  className="flex items-center justify-between w-full p-4 text-[#253F5E] font-medium hover:bg-slate-50 transition rounded-lg"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <div className="flex items-center gap-3">
+                    <LayoutDashboard size={20} className="text-red-600" />
+                    <span>Dashboard</span>
+                  </div>
+                  <ChevronRight size={18} className="text-slate-400" />
+                </Link>
+                <button
+                  onClick={() => {
+                    logout();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="flex items-center gap-3 w-full p-4 text-red-600 font-medium hover:bg-red-50 transition rounded-lg"
+                >
+                  <LogOut size={20} />
+                  <span>Log Out</span>
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="border-b border-gray-200">
+                  <button
+                    onClick={() => setMobileDropdowns(prev => ({ ...prev, login: !prev.login }))}
+                    className="flex items-center justify-between w-full p-4 text-[#253F5E] font-medium hover:bg-gradient-to-r from-orange-500 to-orange-600/10 transition"
+                  >
+                    <span>Login</span>
+                    {mobileDropdowns.login ? (
+                      <ChevronUp className="w-5 h-5 text-red-600" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-red-600" />
+                    )}
+                  </button>
+                  {mobileDropdowns.login && (
+                    <div className="ml-4 mb-2 space-y-1 bg-slate-50 rounded-lg p-2">
+                      {[
+                        { path: '/login/super-admin', label: 'Super Admin' },
+                        { path: '/login/admin-operational', label: 'Operational Admin' },
+                        { path: '/login/admin-finance', label: 'Finance Admin' },
+                        { path: '/login/client', label: 'Client Owner' },
+                        { path: '/login/client-staff', label: 'Client Staff' },
+                        { path: '/login/vendor', label: 'Vendor Owner' },
+                        { path: '/login/vendor-staff', label: 'Vendor Staff' },
+                      ].map((item) => (
+                        <Link
+                          key={item.path}
+                          to={item.path}
+                          className="block px-4 py-3 text-slate-800 hover:text-red-600 hover:bg-red-50 rounded-lg transition text-sm"
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            setMobileDropdowns({});
+                          }}
+                        >
+                          <div className="flex items-center">
+                            <ChevronRight className="w-4 h-4 mr-2 text-red-600" />
+                            Login as {item.label}
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            <Link
-              to="/signup"
-              className="block w-full text-center px-5 py-2 border-2 border-slate-800 text-slate-800 font-semibold rounded-full hover:bg-slate-900 hover:text-white transition"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Sign Up
-            </Link>
+                <Link
+                  to="/signup"
+                  className="block w-full text-center px-5 py-2 border-2 border-slate-800 text-slate-800 font-semibold rounded-full hover:bg-slate-900 hover:text-white transition"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
             <button className="block w-full text-center bg-slate-900 text-white py-3 rounded-full font-semibold hover:bg-red-600 transition">
               Track Shipment
             </button>

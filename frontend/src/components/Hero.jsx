@@ -15,7 +15,7 @@ const Hero = () => {
         if (loadType === 'PTL') {
             navigate('/ptl-estimate');
         } else {
-            navigate('/services/full-load');
+            navigate('/ftl-estimate', { state: { origin, destination } });
         }
     };
 

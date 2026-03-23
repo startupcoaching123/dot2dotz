@@ -18,4 +18,7 @@ export const AUTH_ENDPOINTS = {
   LEADS: `/api/leads`,
   VENDOR_INCOMING_LEADS: `/api/leads/vendor/incoming`,
   PAYMENT_SLABS: `/api/payment-slabs`,
+  CLIENT_DETAILS: (id) => `/api/clients/${id}`,
+  UPDATE_CLIENT: (id) => `/api/clients/${id}`,
+  CHANGE_CLIENT_PASSWORD: `/api/clients/change-password`,
 };

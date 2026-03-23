@@ -1,7 +1,7 @@
 import React from 'react';
 import DashboardLayout from '../../../components/Dashboard/DashboardLayout';
 import VendorLeadsList from '../../../components/Dashboard/VendorLeadsList';
-import { 
+import {
     LayoutDashboard, Briefcase, Truck, Users, Wallet, Settings, Globe, MapPin
 } from 'lucide-react';
 
@@ -18,15 +18,19 @@ const VendorLoadsPage = () => {
 
     return (
         <DashboardLayout sidebarItems={sidebarItems} roleName="Vendor Owner">
-            <div className="space-y-10">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="space-y-8 max-w-7xl mx-auto">
+                {/* Header Section */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-black text-slate-900 border-l-8 border-orange-600 pl-6 uppercase tracking-tighter italic">Available Load Assignments</h1>
-                        <p className="text-slate-400 text-xs font-bold mt-2 ml-8 uppercase tracking-[0.2em] italic">Review and quote on active leads assigned to your fleet</p>
+                        <h1 className="text-2xl font-semibold text-gray-900">Available Load Assignments</h1>
+                        <p className="text-sm text-gray-500 mt-1">Review and quote on active leads assigned to your fleet</p>
                     </div>
                 </div>
 
-                <VendorLeadsList title="My Incoming Leads" />
+                {/* Main Content */}
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8">
+                    <VendorLeadsList title="My Incoming Leads" />
+                </div>
             </div>
         </DashboardLayout>
     );

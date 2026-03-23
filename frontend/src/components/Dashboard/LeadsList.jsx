@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    Search, Filter, MapPin, Truck, Calendar, 
+import {
+    Search, Filter, MapPin, Truck, Calendar,
     Check, X, AlertCircle, MoreVertical, Eye,
     User, Phone, Hash, Info, Package
 } from 'lucide-react';
@@ -19,7 +19,7 @@ const LeadsList = ({ title = "All Freight Leads", refreshTrigger = 0 }) => {
     const [showLeadDetails, setShowLeadDetails] = useState(false);
     const [dimensions, setDimensions] = useState([]);
     const [isLoadingDimensions, setIsLoadingDimensions] = useState(false);
-    
+
     // Vendor Assignment State
     const [showAssignModal, setShowAssignModal] = useState(false);
     const [vendors, setVendors] = useState([]);
@@ -110,22 +110,24 @@ const LeadsList = ({ title = "All Freight Leads", refreshTrigger = 0 }) => {
         setIsLoadingVendors(true);
         setMatchedVendorIds([]); // Reset state for the new lead
         try {
-            // First fetch existing matches for this lead to disable buttons
             const leadId = getLeadId(selectedLead);
-            if (leadId) {
-                await fetchExistingMatches(leadId);
-            }
+            if (!leadId) return;
 
-            const res = await fetchWithAuth(`${API_BASE_URL}${AUTH_ENDPOINTS.GET_VENDORS}?active=true&verified=true`, {
+            // Fetch existing matches first
+            await fetchExistingMatches(leadId);
+
+            // Fetch available vendors specifically for this lead
+            const res = await fetchWithAuth(`${API_BASE_URL}/api/leads/${leadId}/available-vendors`, {
                 method: 'GET'
             });
-            if (!res.ok) throw new Error('Failed to fetch vendors');
+
+            if (!res.ok) throw new Error('Failed to fetch available vendors');
             const data = await res.json();
             const list = data.data || data.vendors || data;
             setVendors(Array.isArray(list) ? list : []);
         } catch (err) {
             console.error('Error fetching vendors:', err);
-            Swal.fire({ icon: 'error', title: 'Fetch Failed', text: 'Could not load active vendors' });
+            Swal.fire({ icon: 'error', title: 'Fetch Failed', text: 'Could not load available vendors for this lead' });
         } finally {
             setIsLoadingVendors(false);
         }
@@ -173,10 +175,10 @@ const LeadsList = ({ title = "All Freight Leads", refreshTrigger = 0 }) => {
                 timer: 1500,
                 showConfirmButton: false
             });
-            
+
             // Update local state to disable button
             setMatchedVendorIds(prev => [...prev, vendorId]);
-            
+
             // Keep modals open to allow matching multiple vendors
         } catch (err) {
             Swal.fire({ icon: 'error', title: 'Assignment Error', text: err.message });
@@ -388,10 +390,10 @@ const LeadsList = ({ title = "All Freight Leads", refreshTrigger = 0 }) => {
                                     <h3 className="text-xs font-black uppercase text-indigo-400 tracking-[0.2em] flex items-center gap-2">
                                         <MapPin size={14} /> Logistics Route
                                     </h3>
-                                    
+
                                     <div className="relative pl-8 space-y-10">
                                         <div className="absolute left-[7px] top-2 bottom-2 w-0.5 bg-dashed-line border-l-2 border-dashed border-slate-100"></div>
-                                        
+
                                         {/* Pickup */}
                                         <div className="relative">
                                             <div className="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-teal-500 border-4 border-white shadow-sm ring-4 ring-teal-50"></div>
@@ -399,7 +401,7 @@ const LeadsList = ({ title = "All Freight Leads", refreshTrigger = 0 }) => {
                                                 <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-2">Pickup Location</p>
                                                 <p className="text-sm font-black text-slate-900 uppercase leading-snug">{selectedLead.pickupAddress}</p>
                                                 <p className="text-[11px] font-bold text-slate-500 mt-1 uppercase italic tracking-wider">{selectedLead.pickupCity}, {selectedLead.pickupState} — {selectedLead.pickupFromPincode}</p>
-                                                
+
                                                 <div className="mt-4 flex flex-wrap gap-4">
                                                     <div className="bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 flex items-center gap-2">
                                                         <User size={12} className="text-slate-400" />
@@ -420,7 +422,7 @@ const LeadsList = ({ title = "All Freight Leads", refreshTrigger = 0 }) => {
                                                 <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-2">Drop Location</p>
                                                 <p className="text-sm font-black text-slate-900 uppercase leading-snug">{selectedLead.dropAddress}</p>
                                                 <p className="text-[11px] font-bold text-slate-500 mt-1 uppercase italic tracking-wider">{selectedLead.dropCity}, {selectedLead.dropState} — {selectedLead.dropToPincode}</p>
-                                                
+
                                                 <div className="mt-4 flex flex-wrap gap-4">
                                                     <div className="bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 flex items-center gap-2">
                                                         <User size={12} className="text-slate-400" />
@@ -571,7 +573,7 @@ const LeadsList = ({ title = "All Freight Leads", refreshTrigger = 0 }) => {
                             ) : (
                                 <div className="space-y-3">
                                     {vendors.map(vendor => (
-                                        <div 
+                                        <div
                                             key={vendor.vendorId || vendor.id || vendor._id}
                                             className="p-5 border border-slate-100 rounded-2xl hover:border-indigo-200 hover:bg-indigo-50/30 transition-all group flex items-center justify-between"
                                         >
@@ -584,14 +586,13 @@ const LeadsList = ({ title = "All Freight Leads", refreshTrigger = 0 }) => {
                                                     <p className="text-[10px] font-bold text-slate-400 uppercase">{vendor.companyName}</p>
                                                 </div>
                                             </div>
-                                            <button 
+                                            <button
                                                 onClick={() => handleAssignVendor(getVendorId(vendor))}
                                                 disabled={isAssigning || matchedVendorIds.includes(getVendorId(vendor))}
-                                                className={`px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all disabled:opacity-50 ${
-                                                    matchedVendorIds.includes(getVendorId(vendor))
+                                                className={`px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all disabled:opacity-50 ${matchedVendorIds.includes(getVendorId(vendor))
                                                     ? 'bg-green-500 text-white'
                                                     : 'bg-slate-900 text-white hover:bg-indigo-600'
-                                                }`}
+                                                    }`}
                                             >
                                                 {isAssigning ? 'Wait...' : matchedVendorIds.includes(getVendorId(vendor)) ? 'Matched' : 'Match'}
                                             </button>
@@ -600,9 +601,9 @@ const LeadsList = ({ title = "All Freight Leads", refreshTrigger = 0 }) => {
                                 </div>
                             )}
                         </div>
-                        
+
                         <div className="p-6 bg-slate-50 flex justify-end">
-                            <button 
+                            <button
                                 onClick={() => setShowAssignModal(false)}
                                 className="px-8 py-3 bg-white border border-slate-200 text-slate-400 rounded-xl font-black text-[10px] uppercase tracking-widest"
                             >

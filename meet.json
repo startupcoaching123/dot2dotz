@@ -1,0 +1,134 @@
+{
+    "name": "AI Meeting Notes Generator",
+    "nodes": [
+        {
+            "parameters": {
+                "path": "meeting-notes",
+                "httpMethod": "POST",
+                "responseMode": "onReceived"
+            },
+            "id": "Webhook",
+            "name": "Webhook",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [
+                200,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "functionCode": "const transcript = $json.transcript || \"\";\nreturn [{ cleanText: transcript.replace(/\\n/g, \" \") }];"
+            },
+            "id": "CleanText",
+            "name": "Clean Transcript",
+            "type": "n8n-nodes-base.function",
+            "typeVersion": 1,
+            "position": [
+                400,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "requestMethod": "POST",
+                "url": "https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent",
+                "jsonParameters": true,
+                "options": {},
+                "queryParametersJson": "{ \"key\": \"YOUR_GEMINI_API_KEY\" }",
+                "bodyParametersJson": "{\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"Analyze this meeting transcript and give:\\n\\n1. Summary\\n2. Key Points\\n3. Action Items\\n4. Important Decisions\\n\\nTranscript:\\n{{$json.cleanText}}\"\n        }\n      ]\n    }\n  ]\n}"
+            },
+            "id": "Gemini",
+            "name": "Gemini AI",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 1,
+            "position": [
+                600,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "functionCode": "return [{\n  summary: $json.candidates[0].content.parts[0].text\n}];"
+            },
+            "id": "FormatOutput",
+            "name": "Format Output",
+            "type": "n8n-nodes-base.function",
+            "typeVersion": 1,
+            "position": [
+                800,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "resource": "document",
+                "operation": "create",
+                "title": "Meeting Notes - {{$now}}",
+                "additionalFields": {
+                    "content": "={{$json.summary}}"
+                }
+            },
+            "id": "GoogleDocs",
+            "name": "Google Docs",
+            "type": "n8n-nodes-base.googleDocs",
+            "typeVersion": 1,
+            "position": [
+                1000,
+                300
+            ],
+            "credentials": {
+                "googleDocsOAuth2Api": {
+                    "id": "YOUR_GOOGLE_DOCS_CREDENTIAL_ID",
+                    "name": "Google Docs Account"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Clean Transcript",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Clean Transcript": {
+            "main": [
+                [
+                    {
+                        "node": "Gemini AI",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Gemini AI": {
+            "main": [
+                [
+                    {
+                        "node": "Format Output",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Format Output": {
+            "main": [
+                [
+                    {
+                        "node": "Google Docs",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

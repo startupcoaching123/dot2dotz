@@ -66,7 +66,7 @@ const VehicleManagementPage = () => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        
+
         // Restriction for numeric fields
         if (['length', 'width', 'height', 'noOfWheels', 'maxLoadCapacityKg'].includes(name)) {
             const val = value.replace(/\D/g, ''); // Remove non-digits

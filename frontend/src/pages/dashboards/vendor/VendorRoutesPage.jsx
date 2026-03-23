@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '../../../components/Dashboard/DashboardLayout';
-import { 
-    LayoutDashboard, Briefcase, Truck, Users, Wallet, MapPin, Globe, 
+import {
+    LayoutDashboard, Briefcase, Truck, Users, Wallet, MapPin, Globe,
     ArrowRight, Navigation, Search, RefreshCw, X, MapPinOff, ChevronDown, CheckCircle2
 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
@@ -138,7 +138,6 @@ const VendorRoutesPage = () => {
         fetchStates();
     }, []);
 
-    // Aggressively find the vendor ID
     const getVendorId = (v) => {
         if (!v) return null;
         const vendorSpecificKeys = ['vender_id', 'vendor_id', 'vendorId', 'venderId'];
@@ -165,9 +164,9 @@ const VendorRoutesPage = () => {
     if (loading) {
         return (
             <DashboardLayout sidebarItems={sidebarItems} roleName="Vendor Owner">
-                <div className="py-20 flex flex-col items-center justify-center gap-4">
-                    <div className="w-10 h-10 border-4 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-slate-400 font-semibold uppercase tracking-wider text-[10px]">Verifying Credentials...</p>
+                <div className="h-full min-h-[50vh] flex flex-col items-center justify-center gap-4">
+                    <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-sm text-gray-500 font-medium">Loading Routes...</p>
                 </div>
             </DashboardLayout>
         );
@@ -175,85 +174,38 @@ const VendorRoutesPage = () => {
 
     return (
         <DashboardLayout sidebarItems={sidebarItems} roleName="Vendor Owner">
-            <div className="space-y-12">
+            <div className="space-y-8 max-w-7xl mx-auto">
                 {/* Header Section */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-black text-slate-900 border-l-8 border-orange-600 pl-6 uppercase tracking-tighter italic">Route Network</h1>
-                        <p className="text-slate-400 text-xs font-bold mt-2 ml-8 uppercase tracking-[0.2em] italic">Manage transit paths and explore operational regions</p>
+                        <h1 className="text-2xl font-semibold text-gray-900">Route Network</h1>
+                        <p className="text-sm text-gray-500 mt-1">Manage transit paths and explore operational regions</p>
                     </div>
-                    <button 
+                    <button
                         onClick={fetchStates}
-                        className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm"
+                        className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
                     >
-                        <RefreshCw size={14} className={fetchingStates ? "animate-spin" : ""} />
+                        <RefreshCw size={16} className={fetchingStates ? "animate-spin text-blue-600" : "text-gray-500"} />
                         Refresh Locations
                     </button>
                 </div>
 
                 {/* States Grid */}
-                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 overflow-hidden relative">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-orange-50/50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 opacity-50 transition-transform duration-700" />
-                    
-                    <div className="relative z-10">
-                        <div className="flex items-center gap-4 mb-8">
-                            <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center shadow-lg">
-                                <Globe size={24} className="text-white" />
-                            </div>
-                            <div>
-                                <h2 className="text-xl font-bold text-slate-900 tracking-tight">Operational States</h2>
-                                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider text-orange-600">Click a state to view available cities</p>
-                            </div>
-                        </div>
 
-                        {fetchingStates ? (
-                            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 opacity-50">
-                                {[...Array(12)].map((_, i) => (
-                                    <div key={i} className="h-12 bg-slate-100 rounded-xl animate-pulse"></div>
-                                ))}
-                            </div>
-                        ) : stateError ? (
-                            <div className="p-8 text-center bg-red-50 rounded-2xl border border-red-100">
-                                <p className="text-red-600 font-bold text-sm uppercase">{stateError}</p>
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                                {states.map((state) => (
-                                    <motion.div 
-                                        key={state.id}
-                                        whileHover={{ y: -2 }}
-                                        onClick={() => handleStateClick(state)}
-                                        className="group p-4 bg-slate-50/50 rounded-2xl border border-transparent hover:bg-white hover:border-orange-200 hover:shadow-lg transition-all cursor-pointer"
-                                    >
-                                        <div className="flex items-center justify-between gap-2">
-                                            <span className="text-xs font-bold text-slate-700 truncate group-hover:text-orange-600 transition-colors uppercase tracking-tight">
-                                                {state.stateName}
-                                            </span>
-                                            <ArrowRight size={14} className="text-slate-300 group-hover:text-orange-600 transition-all group-hover:translate-x-1" />
-                                        </div>
-                                    </motion.div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
 
                 {/* Route Management Section */}
-                <div className="space-y-6">
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="w-1.5 h-8 bg-slate-900 rounded-full"></div>
-                        <h2 className="text-2xl font-bold text-slate-900">Active Fleet Routes</h2>
-                    </div>
-                    
+                <div className="space-y-4">
+                    <h2 className="text-lg font-semibold text-gray-900">Active Fleet Routes</h2>
+
                     {vendorId ? (
                         <RoutesList vendorId={vendorId} title="My Configured Routes" />
                     ) : (
-                        <div className="py-20 text-center bg-white rounded-3xl border border-slate-100 shadow-sm">
-                            <div className="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <Navigation size={32} />
+                        <div className="py-16 text-center bg-white rounded-2xl border border-gray-200 shadow-sm">
+                            <div className="w-12 h-12 bg-gray-50 border border-gray-100 text-gray-400 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <Navigation size={24} />
                             </div>
-                            <p className="text-red-500 font-bold uppercase text-xs italic">Unable to load routes</p>
-                            <p className="text-slate-400 text-[10px] font-semibold uppercase tracking-wider mt-2">Vendor ID not found in profile</p>
+                            <p className="text-base font-medium text-gray-900">Unable to load routes</p>
+                            <p className="text-sm text-gray-500 mt-1">Vendor ID not found in profile</p>
                         </div>
                     )}
                 </div>
@@ -266,205 +218,231 @@ const VendorRoutesPage = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-6"
+                        className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6"
                         onClick={() => setShowCityModal(false)}
                     >
                         <motion.div
-                            initial={{ scale: 0.9, y: 20, opacity: 0 }}
-                            animate={{ scale: 1, y: 0, opacity: 1 }}
-                            exit={{ scale: 0.9, y: 20, opacity: 0 }}
-                            className="bg-white w-full max-w-5xl max-h-[85vh] rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col relative"
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            className="bg-white w-full max-w-5xl max-h-[85vh] rounded-2xl shadow-xl flex flex-col overflow-hidden"
                             onClick={(e) => e.stopPropagation()}
                         >
-                            {/* Decorative elements */}
-                            <div className="absolute top-0 right-0 w-80 h-80 bg-orange-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 opacity-50" />
-                            
-                            <div className="p-8 md:p-10 border-b border-slate-100 flex justify-between items-center relative z-10 bg-white/90 backdrop-blur-md">
-                                <div className="flex items-center gap-6">
-                                    <div className="w-16 h-16 bg-orange-600 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-200">
-                                        <MapPin className="text-white" size={32} />
+                            {/* Modal Header */}
+                            <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-white">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 bg-blue-50 border border-blue-100 rounded-lg flex items-center justify-center">
+                                        <MapPin className="text-blue-600" size={20} />
                                     </div>
                                     <div>
-                                        <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tighter italic">
-                                            {selectedState?.stateName} <span className="text-orange-600">Region HUB</span>
+                                        <h2 className="text-lg font-semibold text-gray-900">
+                                            {selectedState?.stateName} Region
                                         </h2>
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1 italic">State-wide logistics directory & network map</p>
+                                        <p className="text-sm text-gray-500">State-wide logistics directory & network map</p>
                                     </div>
                                 </div>
                                 <button
                                     onClick={() => setShowCityModal(false)}
-                                    className="p-4 bg-slate-100 text-slate-400 rounded-2xl hover:bg-red-50 hover:text-red-500 transition-all group"
+                                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                                 >
-                                    <X size={24} className="group-hover:rotate-90 transition-transform duration-300" />
+                                    <X size={20} />
                                 </button>
                             </div>
 
                             {/* Tab Switcher & Global Search */}
-                            <div className="px-8 py-6 bg-white flex flex-col md:flex-row items-center justify-between border-b border-slate-50 gap-6">
-                                <div className="flex gap-2 p-1.5 bg-slate-100/50 rounded-2xl w-full md:w-auto">
-                                    <button 
+                            <div className="px-6 py-4 bg-white flex flex-col md:flex-row items-center justify-between border-b border-gray-100 gap-4">
+                                <div className="flex bg-gray-100 p-1 rounded-lg w-full md:w-auto">
+                                    <button
                                         onClick={() => setActiveTab('cities')}
-                                        className={`flex-1 md:flex-none px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
-                                            ${activeTab === 'cities' ? 'bg-white text-orange-600 shadow-xl shadow-slate-200/50' : 'text-slate-400 hover:text-slate-600'}`}
+                                        className={`flex-1 md:flex-none px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'cities' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                                            }`}
                                     >
-                                        City Browse ({cities.length})
+                                        Browse Cities ({cities.length})
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={() => setActiveTab('pincodes')}
-                                        className={`flex-1 md:flex-none px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
-                                            ${activeTab === 'pincodes' ? 'bg-white text-orange-600 shadow-xl shadow-slate-200/50' : 'text-slate-400 hover:text-slate-600'}`}
+                                        className={`flex-1 md:flex-none px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'pincodes' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                                            }`}
                                     >
                                         State Pincodes ({statePincodes.length})
                                     </button>
                                 </div>
 
-                                <div className="relative w-full md:w-80">
-                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                                    <input 
+                                <div className="relative w-full md:w-72">
+                                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                                    <input
                                         type="text"
                                         placeholder={`Search ${activeTab === 'cities' ? 'cities' : 'pincodes'}...`}
                                         value={pincodeSearch}
                                         onChange={(e) => setPincodeSearch(e.target.value)}
-                                        className="w-full pl-12 pr-6 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-[10px] font-bold uppercase tracking-widest focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all"
+                                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-500 focus:bg-white focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors outline-none"
                                     />
                                 </div>
                             </div>
 
-                            <div className="flex-1 overflow-y-auto p-8 md:p-12 bg-slate-50/50 custom-scrollbar-orange relative z-10">
+                            {/* Modal Content */}
+                            <div className="flex-1 overflow-y-auto p-6 sm:p-8 bg-gray-50/50">
                                 {activeTab === 'cities' ? (
                                     fetchingCities ? (
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                             {[...Array(9)].map((_, i) => (
-                                                <div key={i} className="h-20 bg-white rounded-3xl border border-slate-100 animate-pulse"></div>
+                                                <div key={i} className="h-16 bg-white rounded-xl border border-gray-200 animate-pulse"></div>
                                             ))}
                                         </div>
                                     ) : cityError ? (
-                                        <div className="py-20 text-center bg-white rounded-3xl border border-slate-100 border-dashed max-w-md mx-auto">
-                                            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                                                <MapPinOff size={32} />
+                                        <div className="py-16 text-center bg-white rounded-xl border border-gray-200 max-w-sm mx-auto">
+                                            <div className="w-12 h-12 bg-gray-50 text-gray-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                <MapPinOff size={24} />
                                             </div>
-                                            <h3 className="text-lg font-bold text-slate-900 uppercase italic">No Cities Available</h3>
-                                            <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-2 px-8">{cityError}</p>
+                                            <h3 className="text-base font-semibold text-gray-900">No Cities Available</h3>
+                                            <p className="text-gray-500 text-sm mt-1 px-6">{cityError}</p>
                                         </div>
                                     ) : (
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                             {cities
                                                 .filter(c => c.cityName.toLowerCase().includes(pincodeSearch.toLowerCase()))
                                                 .map((city) => (
-                                                <div key={city.id} className="relative group/city">
-                                                    <motion.div
-                                                        layout
-                                                        onClick={() => handleCityClick(city.id)}
-                                                        className={`p-6 bg-white rounded-3xl border transition-all cursor-pointer flex items-center justify-between relative z-10
-                                                            ${selectedCityId === city.id 
-                                                                ? 'border-orange-500 ring-4 ring-orange-500/5 shadow-xl transition-all duration-200' 
-                                                                : 'border-slate-100 hover:border-orange-300 hover:shadow-md'}`}
-                                                    >
-                                                        <div className="flex items-center gap-4">
-                                                            <div className={`w-2.5 h-2.5 rounded-full transition-all duration-300
-                                                                ${selectedCityId === city.id ? 'bg-orange-600' : 'bg-slate-200 group-hover/city:bg-orange-300'}`}>
+                                                    <div key={city.id} className="relative">
+                                                        <motion.div
+                                                            layout
+                                                            onClick={() => handleCityClick(city.id)}
+                                                            className={`p-4 bg-white rounded-xl border transition-all cursor-pointer flex items-center justify-between
+                                                                ${selectedCityId === city.id
+                                                                    ? 'border-gray-900 shadow-sm ring-1 ring-gray-900/10'
+                                                                    : 'border-gray-200 hover:border-gray-300'}`}
+                                                        >
+                                                            <div className="flex items-center gap-3">
+                                                                <div className={`w-4 h-4 rounded-full border flex flex-shrink-0 items-center justify-center transition-colors
+                                                                    ${selectedCityId === city.id ? 'border-gray-900 bg-gray-900' : 'border-gray-300'}`}>
+                                                                    {selectedCityId === city.id && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                                                                </div>
+                                                                <span className="font-medium text-sm text-gray-900">
+                                                                    {city.cityName}
+                                                                </span>
                                                             </div>
-                                                            <span className={`font-black uppercase tracking-tight transition-colors duration-200 text-sm
-                                                                ${selectedCityId === city.id ? 'text-orange-600' : 'text-slate-800'}`}>
-                                                                {city.cityName}
-                                                            </span>
-                                                        </div>
-                                                        <div className={`transition-transform duration-300 ${selectedCityId === city.id ? 'rotate-180 text-orange-600' : 'text-slate-300 group-hover/city:text-orange-300'}`}>
-                                                            <ChevronDown size={20} />
-                                                        </div>
-                                                    </motion.div>
+                                                            <div className={`transition-transform duration-200 text-gray-400 ${selectedCityId === city.id ? 'rotate-180 text-gray-900' : ''}`}>
+                                                                <ChevronDown size={18} />
+                                                            </div>
+                                                        </motion.div>
 
-                                                    <AnimatePresence>
-                                                        {selectedCityId === city.id && (
-                                                            <motion.div
-                                                                initial={{ opacity: 0, y: -10 }}
-                                                                animate={{ opacity: 1, y: 0 }}
-                                                                exit={{ opacity: 0, y: -10 }}
-                                                                transition={{ duration: 0.2 }}
-                                                                className="mt-2 bg-white rounded-[2rem] border border-orange-100 shadow-xl overflow-hidden relative z-0 origin-top"
-                                                            >
-                                                                <div className="p-3 bg-orange-50/50 border-b border-orange-100 flex items-center justify-center gap-2">
-                                                                    <p className="text-[10px] font-black text-orange-600 uppercase tracking-widest italic">Serviceable Pincodes</p>
-                                                                </div>
-                                                                <div className="max-h-56 overflow-y-auto p-4 bg-white custom-scrollbar-orange">
-                                                                    {fetchingPincodes ? (
-                                                                        <div className="flex flex-col items-center justify-center py-6 gap-3">
-                                                                            <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-                                                                            <span className="text-[10px] font-black text-orange-400 uppercase tracking-widest italic">Searching...</span>
-                                                                        </div>
-                                                                    ) : pincodeError ? (
-                                                                        <div className="py-6 text-center px-4">
-                                                                            <p className="text-[10px] font-black text-red-400 uppercase tracking-widest italic">{pincodeError}</p>
-                                                                        </div>
-                                                                    ) : pincodes.length === 0 ? (
-                                                                        <div className="py-6 text-center px-4">
-                                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">No pincodes archived</p>
-                                                                        </div>
-                                                                    ) : (
-                                                                        <div className="grid grid-cols-2 gap-2">
-                                                                            {pincodes.map((p) => (
-                                                                                <div 
-                                                                                    key={p.id}
-                                                                                    className="p-3 bg-slate-50 rounded-2xl border border-transparent hover:border-orange-500 hover:bg-orange-600 hover:text-white transition-all cursor-default text-center group/pin relative overflow-hidden"
-                                                                                >
-                                                                                    <span className="text-xs font-black tracking-widest block italic relative z-10">{p.pincode}</span>
-                                                                                </div>
-                                                                            ))}
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                                <div className="p-2 bg-slate-50 border-t border-slate-100 flex justify-center">
-                                                                    <p className="text-[8px] font-black text-slate-300 uppercase tracking-widest italic">{pincodes.length} Pincodes</p>
-                                                                </div>
-                                                            </motion.div>
-                                                        )}
-                                                    </AnimatePresence>
-                                                </div>
-                                            ))}
+                                                        <AnimatePresence>
+                                                            {selectedCityId === city.id && (
+                                                                <motion.div
+                                                                    initial={{ opacity: 0, height: 0 }}
+                                                                    animate={{ opacity: 1, height: 'auto' }}
+                                                                    exit={{ opacity: 0, height: 0 }}
+                                                                    transition={{ duration: 0.2 }}
+                                                                    className="overflow-hidden"
+                                                                >
+                                                                    <div className="mt-2 p-4 bg-gray-100/50 border border-gray-200 rounded-xl">
+                                                                        {fetchingPincodes ? (
+                                                                            <div className="flex justify-center py-4">
+                                                                                <div className="w-5 h-5 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
+                                                                            </div>
+                                                                        ) : pincodeError ? (
+                                                                            <p className="text-sm text-center text-gray-500 py-2">{pincodeError}</p>
+                                                                        ) : pincodes.length === 0 ? (
+                                                                            <p className="text-sm text-center text-gray-500 py-2">No pincodes archived</p>
+                                                                        ) : (
+                                                                            <div className="flex flex-wrap gap-2">
+                                                                                {pincodes.map((p) => (
+                                                                                    <div
+                                                                                        key={p.id}
+                                                                                        className="px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm font-medium text-gray-700 shadow-sm"
+                                                                                    >
+                                                                                        {p.pincode}
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </motion.div>
+                                                            )}
+                                                        </AnimatePresence>
+                                                    </div>
+                                                ))}
                                         </div>
                                     )
                                 ) : (
                                     /* State Pincodes Global View */
                                     fetchingStatePincodes ? (
-                                        <div className="flex flex-col items-center justify-center py-20 gap-4">
-                                            <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-                                            <p className="text-sm font-black text-orange-600 uppercase tracking-[0.2em] italic">Compiling State-wide Directory...</p>
+                                        <div className="flex flex-col items-center justify-center py-16 gap-3">
+                                            <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                            <p className="text-sm font-medium text-gray-500">Compiling Directory...</p>
                                         </div>
                                     ) : statePincodes.length === 0 ? (
-                                        <div className="py-20 text-center bg-white rounded-3xl border border-slate-100 border-dashed max-w-md mx-auto">
-                                            <p className="text-slate-400 font-black uppercase tracking-widest italic text-sm">No state pincodes synchronized</p>
+                                        <div className="py-16 text-center bg-white rounded-xl border border-gray-200 max-w-sm mx-auto">
+                                            <p className="text-gray-500 font-medium text-sm">No state pincodes synchronized</p>
                                         </div>
                                     ) : (
-                                        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
                                             {statePincodes
                                                 .filter(p => p.pincode.includes(pincodeSearch))
                                                 .map((p) => (
-                                                <div 
-                                                    key={p.id}
-                                                    className="p-4 bg-white rounded-2xl border border-slate-100 ring-4 ring-transparent hover:ring-orange-500/5 hover:border-orange-400 transition-all cursor-default group/global flex flex-col items-center"
-                                                >
-                                                    <span className="text-xs font-black text-slate-900 block tracking-widest italic group-hover:text-orange-600 transition-colors">{p.pincode}</span>
-                                                    <p className="text-[7px] font-black text-slate-300 uppercase tracking-tighter mt-1 truncate w-full text-center group-hover:text-slate-400">{p.cityName}</p>
-                                                </div>
-                                            ))}
+                                                    <div
+                                                        key={p.id}
+                                                        className="p-3 bg-white rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all flex flex-col items-center justify-center text-center gap-1 cursor-default"
+                                                    >
+                                                        <span className="text-sm font-semibold text-gray-900">{p.pincode}</span>
+                                                        <span className="text-xs text-gray-500 truncate w-full">{p.cityName}</span>
+                                                    </div>
+                                                ))}
                                         </div>
                                     )
                                 )}
                             </div>
-                            
+
                             {/* Modal Footer */}
-                            <div className="p-8 bg-white border-t border-slate-100 flex items-center justify-between relative z-10">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] italic">
-                                        Active Nodes: {activeTab === 'cities' ? cities.length : statePincodes.length} Units
+                            <div className="px-6 py-4 bg-white border-t border-gray-100 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 bg-green-500 rounded-full" />
+                                    <p className="text-sm font-medium text-gray-500">
+                                        {activeTab === 'cities' ? `${cities.length} Cities` : `${statePincodes.length} Pincodes`} Available
                                     </p>
                                 </div>
-                                <div className="text-[8px] font-black text-slate-300 uppercase tracking-[0.4em]">Dot2Dotz Location Engine v2.0</div>
                             </div>
                         </motion.div>
                     </motion.div>
+
                 )}
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
+                        <div className="w-10 h-10 bg-blue-50 border border-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <Globe size={20} className="text-blue-600" />
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-semibold text-gray-900">Operational States</h2>
+                            <p className="text-sm text-gray-500">Click a state to view available cities and pincodes.</p>
+                        </div>
+                    </div>
+
+                    {fetchingStates ? (
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 opacity-70">
+                            {[...Array(12)].map((_, i) => (
+                                <div key={i} className="h-14 bg-gray-100 rounded-xl animate-pulse"></div>
+                            ))}
+                        </div>
+                    ) : stateError ? (
+                        <div className="p-6 text-center bg-gray-50 border border-gray-200 rounded-xl">
+                            <p className="text-sm font-medium text-gray-900">{stateError}</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                            {states.map((state) => (
+                                <div
+                                    key={state.id}
+                                    onClick={() => handleStateClick(state)}
+                                    className="group p-4 bg-white rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer flex items-center justify-between"
+                                >
+                                    <span className="text-sm font-medium text-gray-900 truncate">
+                                        {state.stateName}
+                                    </span>
+                                    <ArrowRight size={16} className="text-gray-400 group-hover:text-gray-900 transition-colors" />
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </AnimatePresence>
         </DashboardLayout>
     );

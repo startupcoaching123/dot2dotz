@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Download,
@@ -15,6 +15,7 @@ import {
     Package,
     ArrowRight,
     X,
+    Shield,
     ShieldCheck,
     Clock,
     CreditCard,
@@ -26,21 +27,41 @@ import {
 
 const BookingSummaryPage = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const { origin, destination, vehicle } = location.state || {};
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [modalStep, setModalStep] = useState(1); // 1: Identity, 2: Business/Individual, 3: Confirm
-    const [accountType, setAccountType] = useState('Business'); // 'Individual' or 'Business'
+    const [modalStep, setModalStep] = useState(1);
+    const [accountType, setAccountType] = useState('Business');
+    const [regFormData, setRegFormData] = useState({
+        aadharNumber: '',
+        otp: '',
+        businessName: '',
+        email: '',
+        panNumber: '',
+        gstNumber: ''
+    });
 
     const handleProceed = () => {
         setIsModalOpen(true);
         setModalStep(1);
     };
 
-    const handleNextStep = () => {
+    const handleRegChange = (e) => {
+        const { name, value } = e.target;
+        setRegFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleNextStep = async () => {
         if (modalStep < 3) {
             setModalStep(modalStep + 1);
         } else {
-            setIsModalOpen(false);
-            navigate('/dashboard');
+            try {
+                console.log('Registering client with data:', { ...regFormData, accountType });
+                setIsModalOpen(false);
+                navigate('/dashboard/client');
+            } catch (err) {
+                console.error(err);
+            }
         }
     };
 
@@ -84,7 +105,7 @@ const BookingSummaryPage = () => {
                             <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-12">
                                 <div className="text-center md:text-left flex-1">
                                     <span className="text-xs font-semibold text-red-600 uppercase tracking-wider mb-2 block">Origin</span>
-                                    <h2 className="text-2xl font-bold text-slate-900">Mumbai, IN</h2>
+                                    <h2 className="text-2xl font-bold text-slate-900">{origin || 'Mumbai, IN'}</h2>
                                 </div>
 
                                 <div className="flex flex-col items-center gap-2 relative px-10">
@@ -103,7 +124,7 @@ const BookingSummaryPage = () => {
 
                                 <div className="text-center md:text-right flex-1">
                                     <span className="text-xs font-semibold text-red-600 uppercase tracking-wider mb-2 block">Destination</span>
-                                    <h2 className="text-2xl font-bold text-slate-900">New Delhi, IN</h2>
+                                    <h2 className="text-2xl font-bold text-slate-900">{destination || 'New Delhi, IN'}</h2>
                                 </div>
                             </div>
                         </motion.div>
@@ -127,7 +148,9 @@ const BookingSummaryPage = () => {
                                     </div>
                                     <div>
                                         <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1 block">{spec.label}</label>
-                                        <span className="text-lg font-bold text-slate-900">{spec.value}</span>
+                                        <span className="text-lg font-bold text-slate-900">
+                                            {i === 0 && vehicle ? vehicle.capacity : spec.value}
+                                        </span>
                                     </div>
                                 </motion.div>
                             ))}
@@ -149,8 +172,8 @@ const BookingSummaryPage = () => {
                                 {[
                                     { label: 'Base Freight', icon: Package, amount: '₹1,540.00' },
                                     { label: 'Fuel Surcharge', icon: Truck, amount: '₹120.50' },
-                                    { label: 'Docket Charge', icon: FileTextIcon, amount: '₹50.00' },
-                                    { label: 'GST (18%)', icon: ShieldCheckIcon, amount: '₹268.36' },
+                                    { label: 'Docket Charge', icon: MessageSquare, amount: '₹50.00' },
+                                    { label: 'GST (18%)', icon: ShieldCheck, amount: '₹268.36' },
                                 ].map((item, i) => (
                                     <div key={i} className="flex justify-between items-center group">
                                         <div className="flex items-center gap-4">
@@ -242,140 +265,138 @@ const BookingSummaryPage = () => {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setIsModalOpen(false)}
-                            className="absolute inset-0 bg-black/60 backdrop-blur-md"
+                            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
                         />
 
                         <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="relative bg-white w-full max-w-[500px] rounded-2xl overflow-hidden shadow-2xl"
+                            initial={{ scale: 0.98, opacity: 0, y: 10 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.98, opacity: 0, y: 10 }}
+                            transition={{ duration: 0.2, ease: "easeOut" }}
+                            className="relative bg-white w-full max-w-[440px] rounded-[2rem] overflow-hidden shadow-2xl flex flex-col"
+                            onClick={(e) => e.stopPropagation()}
                         >
-                            <div className="p-10 space-y-10">
-                                <div className="flex items-center justify-between">
-                                    <h3 className="text-xl font-bold text-slate-900 uppercase">Activate Your Account</h3>
-                                    <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-black transition-colors">
-                                        <X size={24} />
-                                    </button>
+                            {/* Compact Modal Header */}
+                            <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-white">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-100">
+                                        <Shield className="text-white" size={20} />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-none">Activate Account</h2>
+                                        <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">KYC VERIFICATION REQUIRED</p>
+                                    </div>
                                 </div>
+                                <button onClick={() => setIsModalOpen(false)} className="p-2 text-slate-300 hover:text-red-500 transition-colors">
+                                    <X size={20} />
+                                </button>
+                            </div>
 
-                                {/* Stepper */}
-                                <div className="flex items-center justify-between relative px-4">
-                                    <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-slate-100 -translate-y-1/2 z-0"></div>
-                                    {[1, 2, 3].map((step) => (
-                                        <div key={step} className="relative z-10 flex flex-col items-center gap-2">
-                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ${modalStep >= step ? 'bg-red-600 text-white shadow-sm' : 'bg-slate-100 text-slate-400'}`}>
-                                                {step === 1 && <User size={18} />}
-                                                {step === 2 && <Briefcase size={18} />}
-                                                {step === 3 && <Check size={18} />}
-                                            </div>
-                                            <span className={`text-[10px] font-semibold uppercase tracking-wider ${modalStep >= step ? 'text-red-600' : 'text-slate-400'}`}>
-                                                {step === 1 && 'Identity'}
-                                                {step === 2 && 'Business'}
-                                                {step === 3 && 'Confirm'}
-                                            </span>
+                            {/* Minimal Stepper */}
+                            <div className="px-8 py-5 bg-slate-50/50 border-b border-slate-50 flex items-center justify-between relative">
+                                <div className="absolute top-1/2 left-10 right-10 h-px bg-slate-200 -translate-y-1/2 z-0"></div>
+                                {[1, 2, 3].map((step) => (
+                                    <div key={step} className="relative z-10 flex flex-col items-center gap-1.5 bg-white px-3 py-1 rounded-lg border border-slate-100 shadow-sm">
+                                        <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 text-[10px] font-bold ${modalStep >= step ? 'bg-red-600 text-white shadow-md shadow-red-100' : 'bg-white text-slate-300 border border-slate-100'}`}>
+                                            {step}
                                         </div>
-                                    ))}
-                                </div>
+                                        <span className={`text-[7px] font-bold uppercase tracking-widest ${modalStep >= step ? 'text-red-600' : 'text-slate-400'}`}>
+                                            {step === 1 ? 'Identity' : step === 2 ? 'Details' : 'Final'}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
 
-                                {/* Step Content */}
-                                <div className="py-2">
-                                    {modalStep === 1 && (
-                                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                            <div className="space-y-4">
-                                                <div className="space-y-2">
-                                                    <label className="text-xs font-black uppercase text-gray-400 italic tracking-[0.1em] ml-1">Aadhar Number</label>
-                                                    <input placeholder="Enter 12 digit Aadhar number" className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl font-bold italic text-base focus:outline-none focus:border-red-600 transition-all" />
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <label className="text-xs font-black uppercase text-gray-400 italic tracking-[0.1em] ml-1">Mobile OTP</label>
-                                                    <div className="flex gap-4">
-                                                        <input placeholder="Enter OTP" className="flex-grow px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl font-bold italic text-base focus:outline-none focus:border-red-600 transition-all" />
-                                                        <button className="px-6 bg-black text-white rounded-2xl font-black italic uppercase text-[10px] tracking-widest whitespace-nowrap">Send OTP</button>
-                                                    </div>
+                            {/* Minimal Step Content */}
+                            <div className="p-8 bg-white min-h-[300px]">
+                                {modalStep === 1 && (
+                                    <div className="space-y-6 animate-in fade-in duration-300">
+                                        <div className="space-y-4">
+                                            <div className="space-y-1.5">
+                                                <label className="text-[8px] font-bold uppercase text-slate-400 tracking-widest ml-1">Aadhar Number</label>
+                                                <input 
+                                                    name="aadharNumber"
+                                                    value={regFormData.aadharNumber}
+                                                    onChange={handleRegChange}
+                                                    placeholder="0000 0000 0000" 
+                                                    className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-xl font-bold text-slate-900 focus:outline-none text-sm tracking-[0.2em]" 
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[8px] font-bold uppercase text-slate-400 tracking-widest ml-1">Mobile OTP</label>
+                                                <div className="relative">
+                                                    <input 
+                                                        name="otp"
+                                                        value={regFormData.otp}
+                                                        onChange={handleRegChange}
+                                                        placeholder="Enter 6-digit OTP" 
+                                                        className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-xl font-bold text-slate-900 focus:outline-none text-sm" 
+                                                    />
+                                                    <button className="absolute right-2 top-2 bottom-2 px-4 bg-slate-900 text-white rounded-lg font-bold uppercase text-[7px] tracking-widest hover:bg-red-600 transition-colors">Send</button>
                                                 </div>
                                             </div>
-                                            <p className="text-[10px] text-gray-400 italic text-center leading-relaxed">Your Aadhar details will be verified securely. We do not store your Aadhar number.</p>
                                         </div>
-                                    )}
+                                        <p className="text-[7px] text-slate-400 italic text-center font-medium">Secured by 256-bit encryption protocol</p>
+                                    </div>
+                                )}
 
-                                    {modalStep === 2 && (
-                                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                            <div className="flex gap-4">
+                                {modalStep === 2 && (
+                                    <div className="space-y-6 animate-in fade-in duration-300">
+                                        <div className="flex gap-2 p-1 bg-slate-50 rounded-xl border border-slate-100">
+                                            {['Individual', 'Business'].map(type => (
                                                 <button
-                                                    onClick={() => setAccountType('Individual')}
-                                                    className={`flex-1 py-4 rounded-xl font-bold uppercase text-xs tracking-wider transition-all ${accountType === 'Individual' ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-slate-50 text-slate-400 border border-transparent'}`}
+                                                    key={type}
+                                                    onClick={() => setAccountType(type)}
+                                                    className={`flex-1 py-2.5 rounded-lg font-bold uppercase text-[8px] tracking-widest transition-all ${accountType === type ? 'bg-white text-red-600 shadow-sm' : 'bg-transparent text-slate-400'}`}
                                                 >
-                                                    Individual
+                                                    {type}
                                                 </button>
-                                                <button
-                                                    onClick={() => setAccountType('Business')}
-                                                    className={`flex-1 py-4 rounded-xl font-bold uppercase text-xs tracking-wider transition-all ${accountType === 'Business' ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-slate-50 text-slate-400 border border-transparent'}`}
-                                                >
-                                                    Business
-                                                </button>
-                                            </div>
+                                            ))}
+                                        </div>
 
-                                            <div className="space-y-4">
-                                                <div className="space-y-2">
-                                                    <label className="text-xs font-black uppercase text-gray-400 italic tracking-[0.1em] ml-1">{accountType === 'Business' ? 'PAN Card Number' : 'Full Name'}</label>
-                                                    <input placeholder={accountType === 'Business' ? 'Enter Business PAN' : 'Enter your name'} className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl font-bold italic text-base focus:outline-none focus:border-red-600 transition-all" />
-                                                </div>
-                                                {accountType === 'Business' && (
-                                                    <div className="space-y-2">
-                                                        <label className="text-xs font-black uppercase text-gray-400 italic tracking-[0.1em] ml-1">GST Number</label>
-                                                        <input placeholder="Enter Business GST number" className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl font-bold italic text-base focus:outline-none focus:border-red-600 transition-all" />
-                                                    </div>
-                                                )}
-                                                <div className="space-y-2">
-                                                    <label className="text-xs font-black uppercase text-gray-400 italic tracking-[0.1em] ml-1">Address</label>
-                                                    <input placeholder="Enter complete address" className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl font-bold italic text-base focus:outline-none focus:border-red-600 transition-all" />
-                                                </div>
+                                        <div className="space-y-4">
+                                            <Field label={accountType === 'Business' ? 'Business Name' : 'Full Name'} name="businessName" placeholder="Enter name" value={regFormData.businessName} onChange={handleRegChange} />
+                                            <Field label="Contact Email" name="email" type="email" placeholder="email@example.com" value={regFormData.email} onChange={handleRegChange} />
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <Field label="PAN Card" name="panNumber" placeholder="ABCDE1234F" value={regFormData.panNumber} onChange={handleRegChange} />
+                                                {accountType === 'Business' && <Field label="GSTIN" name="gstNumber" placeholder="22AAAAA0000A1Z5" value={regFormData.gstNumber} onChange={handleRegChange} />}
                                             </div>
                                         </div>
-                                    )}
+                                    </div>
+                                )}
 
-                                    {modalStep === 3 && (
-                                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                            <div className="bg-gray-50/50 rounded-3xl p-6 space-y-4 border border-gray-100">
-                                                <h4 className="text-[10px] font-black uppercase text-gray-400 italic tracking-[0.2em] mb-4">Account Summary</h4>
-                                                <div className="flex justify-between items-center text-sm">
-                                                    <span className="text-gray-500 font-bold">Account Type</span>
-                                                    <span className="text-gray-900 font-black italic">{accountType}</span>
-                                                </div>
-                                                <div className="flex justify-between items-center text-sm">
-                                                    <span className="text-gray-500 font-bold">Aadhar</span>
-                                                    <span className="text-gray-900 font-black italic">XXXX-XXXX-9988</span>
-                                                </div>
-                                                <div className="flex justify-between items-center text-sm">
-                                                    <span className="text-gray-500 font-bold">PAN</span>
-                                                    <span className="text-gray-900 font-black italic">Not provided</span>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-4 p-4 bg-green-50 rounded-2xl border border-green-100 text-green-700">
-                                                <CheckCircleIcon size={20} />
-                                                <span className="text-[10px] font-black uppercase tracking-widest italic">All details verified successfully</span>
-                                            </div>
+                                {modalStep === 3 && (
+                                    <div className="space-y-6 animate-in fade-in duration-300">
+                                        <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 space-y-4">
+                                            <SummaryRow label="Entity Type" value={accountType} />
+                                            <SummaryRow label="Identity" value={regFormData.businessName} />
+                                            <SummaryRow label="Work Mail" value={regFormData.email} />
+                                            <SummaryRow label="KYC (PAN)" value={regFormData.panNumber} />
                                         </div>
-                                    )}
+                                        <div className="flex items-center gap-3 p-4 bg-green-50 rounded-xl border border-green-100 text-green-700">
+                                            <div className="w-6 h-6 bg-white rounded-lg flex items-center justify-center shadow-sm text-green-600">
+                                                <Check size={14} />
+                                            </div>
+                                            <span className="text-[8px] font-bold uppercase tracking-widest italic leading-none">Ready for deployment</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Minimal Footer */}
+                            <div className="p-6 bg-slate-50/50 border-t border-slate-50 flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-1 h-1 bg-red-600 rounded-full" />
+                                    <p className="text-[7px] font-bold text-slate-300 uppercase tracking-[0.2em]">Dot2Dotz Engine v2.1</p>
                                 </div>
-
-                                {/* Modal Footer Actions */}
-                                <div className="flex gap-4">
+                                <div className="flex gap-2">
                                     {modalStep > 1 && (
-                                        <button
-                                            onClick={handlePrevStep}
-                                            className="w-20 flex items-center justify-center bg-slate-900 text-white rounded-xl transition-all hover:bg-slate-800"
-                                        >
-                                            <ArrowLeft size={20} />
+                                        <button onClick={handlePrevStep} className="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-slate-900 transition-colors">
+                                            <ArrowLeft size={16} />
                                         </button>
                                     )}
-                                    <button
-                                        onClick={handleNextStep}
-                                        className="flex-grow bg-[#FF3B30] hover:bg-red-700 text-white py-5 rounded-xl font-bold uppercase tracking-wider text-sm shadow-sm transition-all flex items-center justify-center gap-3 active:scale-95"
-                                    >
-                                        {modalStep === 3 ? 'Activate Account' : 'Continue'}
-                                        <ArrowRight size={20} />
+                                    <button onClick={handleNextStep} className="px-6 h-10 bg-red-600 hover:bg-slate-900 text-white rounded-lg font-bold uppercase tracking-widest text-[8px] shadow-lg shadow-red-100 transition-all active:scale-95 italic min-w-[120px]">
+                                        {modalStep === 3 ? 'Finalize' : 'Continue'}
                                     </button>
                                 </div>
                             </div>
@@ -387,23 +408,18 @@ const BookingSummaryPage = () => {
     );
 };
 
-// Helper components for missing icons
-const FileTextIcon = (props) => (
-    <svg {...props} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" />
-    </svg>
+const Field = ({ label, ...props }) => (
+    <div className="space-y-1">
+        <label className="text-[8px] font-bold uppercase text-slate-400 tracking-widest ml-1 italic">{label}</label>
+        <input {...props} className="w-full px-5 py-3.5 bg-slate-50/50 border border-slate-100 rounded-xl font-bold text-slate-900 focus:outline-none italic text-sm" />
+    </div>
 );
 
-const ShieldCheckIcon = (props) => (
-    <svg {...props} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><polyline points="9 12 11 14 15 10" />
-    </svg>
-);
-
-const CheckCircleIcon = (props) => (
-    <svg {...props} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
-    </svg>
+const SummaryRow = ({ label, value }) => (
+    <div className="flex justify-between items-center text-sm border-b border-white pb-3 last:border-0 last:pb-0">
+        <span className="text-slate-400 font-bold uppercase text-[8px] tracking-[0.2em] italic">{label}</span>
+        <span className="text-slate-900 font-bold italic text-[10px] uppercase truncate ml-4">{value || 'N/A'}</span>
+    </div>
 );
 
 export default BookingSummaryPage;

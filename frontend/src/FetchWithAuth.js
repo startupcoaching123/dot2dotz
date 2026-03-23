@@ -22,7 +22,8 @@ const getCookie = (name) => {
 const refreshToken = async () => {
   try {
     // Try the configured endpoint first
-    let res = await fetch(AUTH_ENDPOINTS.REFRESH, {
+    const refreshUrl = AUTH_ENDPOINTS.REFRESH.startsWith('http') ? AUTH_ENDPOINTS.REFRESH : `${API_BASE_URL}${AUTH_ENDPOINTS.REFRESH}`;
+    let res = await fetch(refreshUrl, {
       method: "POST",
       credentials: "include",
     });
@@ -30,7 +31,8 @@ const refreshToken = async () => {
     // Fallback to commonly used refresh-token if primary fails with 404
     if (res.status === 404) {
       console.log("⚠️ /auth/refresh returned 404, trying /auth/refresh-token...");
-      res = await fetch("/api/auth/refresh-token", {
+      const fallbackUrl = `${API_BASE_URL}/api/auth/refresh-token`;
+      res = await fetch(fallbackUrl, {
         method: "POST",
         credentials: "include",
       });
@@ -45,9 +47,9 @@ const refreshToken = async () => {
     try {
       const data = await res.json();
       // Backend returns loginResponse inside data field: ApiResponse.success(loginResponse, "Token refreshed")
-      const newToken = data.accessToken || 
-                        data.token || 
-                        (data.data && (data.data.accessToken || data.data.token));
+      const newToken = data.accessToken ||
+        data.token ||
+        (data.data && (data.data.accessToken || data.data.token));
 
       if (newToken) {
         console.log("💾 Updating access_token cookie from response body");
@@ -76,18 +78,26 @@ const fetchWithAuth = async (url, options = {}) => {
 
   const accessToken = getCookie("access_token") || getCookie("accessToken");
 
+  const headers = {
+    ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+    ...(options.headers || {}),
+  };
+
+  if (!(options.body instanceof FormData)) {
+    headers["Content-Type"] = headers["Content-Type"] || "application/json";
+  } else {
+    delete headers["Content-Type"];
+  }
+
   const config = {
     ...options,
     credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
-      ...(options.headers || {}),
-    },
+    headers,
   };
 
   try {
-    let response = await fetch(url, config);
+    const initialUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
+    let response = await fetch(initialUrl, config);
 
     if (response.status !== 401 && response.status !== 403) {
       return response;
@@ -111,19 +121,27 @@ const fetchWithAuth = async (url, options = {}) => {
     // get new token after refresh
     const newAccessToken = getCookie("access_token") || getCookie("accessToken");
 
+    const retryHeaders = {
+      ...(newAccessToken && { Authorization: `Bearer ${newAccessToken}` }),
+      ...(options.headers || {}),
+    };
+
+    if (!(options.body instanceof FormData)) {
+      retryHeaders["Content-Type"] = retryHeaders["Content-Type"] || "application/json";
+    } else {
+      delete retryHeaders["Content-Type"];
+    }
+
     const retryConfig = {
       ...options,
       credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        ...(newAccessToken && { Authorization: `Bearer ${newAccessToken}` }),
-        ...(options.headers || {}),
-      },
+      headers: retryHeaders,
     };
 
     console.log("🔁 Retrying request");
 
-    return await fetch(url, retryConfig);
+    const finalUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
+    return await fetch(finalUrl, retryConfig);
 
   } catch (error) {
     console.error("❌ Network error:", error);

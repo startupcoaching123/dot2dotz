@@ -1,11 +1,43 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, MapPin, Navigation, Clock, Check, X, MoreVertical, Plus, ArrowRight, ChevronRight, Globe, Loader2, LocateFixed } from 'lucide-react';
+import { Search, MapPin, Navigation, Clock, Check, X, MoreVertical, Plus, ArrowRight, ChevronRight, Globe, Loader2, LocateFixed, Edit2, Trash2 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { AUTH_ENDPOINTS, API_BASE_URL } from '../../api/endpoints';
 import fetchWithAuth from '../../FetchWithAuth';
 
-const RoutesList = ({ vendorId, vehicleId = 1, title = "Route Management", refreshTrigger = 0 }) => {
+const CityListItem = ({ city, isZoneMode, selectedPincodeIds, onClick, onToggle }) => {
+    const [isLoading, setIsLoading] = React.useState(false);
+
+    return (
+        <div className="w-full flex items-center justify-between bg-white border border-slate-200 rounded-lg hover:border-slate-400 hover:shadow-sm transition-all group overflow-hidden pr-2">
+            <button
+                type="button"
+                onClick={() => onClick(city)}
+                className="flex-1 p-3 flex items-center justify-between text-left"
+            >
+                <span className="text-sm font-medium text-slate-700 group-hover:text-slate-900">{city.cityName}</span>
+                <ChevronRight size={16} className="text-slate-300 group-hover:text-slate-500 mr-2" />
+            </button>
+            {isZoneMode && (
+                <button
+                    type="button"
+                    disabled={isLoading}
+                    onClick={async (e) => {
+                        e.stopPropagation();
+                        setIsLoading(true);
+                        await onToggle(city);
+                        setIsLoading(false);
+                    }}
+                    className="p-2 bg-slate-50 text-slate-500 border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors text-[10px] font-bold uppercase tracking-wider disabled:opacity-50 min-w-[85px] flex justify-center"
+                >
+                    {isLoading ? <Loader2 size={14} className="animate-spin" /> : 'TOGGLE ALL'}
+                </button>
+            )}
+        </div>
+    );
+};
+
+const RoutesList = ({ vendorId, vehicleId = 1, title = "Route Management", refreshTrigger = 0, onUpdate }) => {
     const [routes, setRoutes] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
@@ -29,9 +61,26 @@ const RoutesList = ({ vendorId, vehicleId = 1, title = "Route Management", refre
         searchQuery: ''
     });
 
+    // New Zone & Fleet States
+    const [fleets, setFleets] = useState([]);
+    const [selectedFleetId, setSelectedFleetId] = useState('');
+    const [routeType, setRouteType] = useState('CORRIDOR'); // 'CORRIDOR' or 'ZONE'
+    const [routeName, setRouteName] = useState('');
+    const [selectedZoneState, setSelectedZoneState] = useState(null);
+    const [selectedPincodeIds, setSelectedPincodeIds] = useState([]);
+    const [isFetchingZoneData, setIsFetchingZoneData] = useState(false);
+
+    // Corridor specific state
+    const [corridorStops, setCorridorStops] = useState([
+        { id: Date.now(), pincode: null, pincodeId: null, pickupPoint: true, dropPoint: false },
+        { id: Date.now() + 1, pincode: null, pincodeId: null, pickupPoint: false, dropPoint: true }
+    ]);
+    const [activeStopIndex, setActiveStopIndex] = useState(null);
+    const [editingRouteId, setEditingRouteId] = useState(null);
+
     const pickerRef = useRef(null);
 
-    // Initial Fetch for States
+    // Initial Fetch for States & Fleets
     useEffect(() => {
         const fetchStates = async () => {
             setFetchingStatus(prev => ({ ...prev, states: true }));
@@ -45,13 +94,49 @@ const RoutesList = ({ vendorId, vehicleId = 1, title = "Route Management", refre
                 setFetchingStatus(prev => ({ ...prev, states: false }));
             }
         };
-        if (showAddModal) fetchStates();
-    }, [showAddModal]);
+
+        const fetchFleets = async () => {
+            if (!vendorId) return;
+            try {
+                const res = await fetchWithAuth(`${AUTH_ENDPOINTS.GET_VENDORS}/${vendorId}/fleet`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setFleets(data.data || data.vehicles || data.fleet || []);
+                }
+            } catch (err) {
+                console.error("Failed to fetch fleets", err);
+            }
+        };
+
+        if (showAddModal) {
+            fetchStates();
+            fetchFleets();
+        }
+    }, [showAddModal, vendorId]);
 
     const handleLocationClick = async (type, item) => {
         if (type === 'state') {
             setPickerState(prev => ({ ...prev, selectedState: item, step: 'cities', selectedCity: null, selectedPincode: null, searchQuery: '' }));
             setFetchingStatus(prev => ({ ...prev, cities: true }));
+            
+            // If ZONE mode, auto select ALL pincodes in state
+            if (routeType === 'ZONE') {
+                setSelectedZoneState(item);
+                setIsFetchingZoneData(true);
+                try {
+                    const res = await fetch(`https://dev.amankumarr.in/api/location/states/${item.id}/pincodes`);
+                    const data = await res.json();
+                    if (data.success) {
+                        const allPincodeIds = data.data.map(p => p.id);
+                        setSelectedPincodeIds(allPincodeIds);
+                    }
+                } catch (err) {
+                    console.error("Failed to fetch zone pincodes", err);
+                } finally {
+                    setIsFetchingZoneData(false);
+                }
+            }
+
             try {
                 const res = await fetch(`https://dev.amankumarr.in/api/location/states/${item.id}/cities`);
                 const data = await res.json();
@@ -74,14 +159,28 @@ const RoutesList = ({ vendorId, vehicleId = 1, title = "Route Management", refre
                 setFetchingStatus(prev => ({ ...prev, pincodes: false }));
             }
         } else if (type === 'pincode') {
-            const displayValue = `${pickerState.selectedCity.cityName} - ${item.pincode}`;
-            setAddForm(prev => {
-                const current = prev[pickerState.active] || [];
-                if (current.includes(displayValue)) {
-                    return { ...prev, [pickerState.active]: current.filter(v => v !== displayValue) };
-                }
-                return { ...prev, [pickerState.active]: [...current, displayValue] };
-            });
+            if (routeType === 'ZONE') {
+                setSelectedPincodeIds(prev => 
+                    prev.includes(item.id) 
+                        ? prev.filter(id => id !== item.id) 
+                        : [...prev, item.id]
+                );
+            } else {
+                // CORRIDOR Mode: assign to specific stop
+                const displayValue = `${pickerState.selectedCity.cityName} - ${item.pincode}`;
+                setCorridorStops(prev => {
+                    const updated = [...prev];
+                    if (activeStopIndex !== null && updated[activeStopIndex]) {
+                        updated[activeStopIndex] = {
+                            ...updated[activeStopIndex],
+                            pincode: displayValue,
+                            pincodeId: item.id
+                        };
+                    }
+                    return updated;
+                });
+                closePicker();
+            }
         }
     };
 
@@ -99,26 +198,73 @@ const RoutesList = ({ vendorId, vehicleId = 1, title = "Route Management", refre
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const fetchRoutes = async () => {
+    // Robust ID extractor for fleet items
+    const getVehicleId = (v) => v?.vendorVehiclesId || v?.id || v?._id || v?.vehicle_id || v?.vehicleId;
+
+    const fetchRoutes = async (currentFleets = fleets) => {
         if (!vendorId) return;
         setIsLoading(true);
         setError('');
         try {
-            let url = `${AUTH_ENDPOINTS.GET_VENDORS}/${vendorId}/fleet/${vehicleId}/routes`;
-            const params = new URLSearchParams();
-            if (searchFrom) params.append('from', searchFrom);
-            if (searchTo) params.append('to', searchTo);
+            // Priority: Fetch only for selected fleet if a specific filter is set
+            if (selectedFleetId) {
+                let url = `${AUTH_ENDPOINTS.GET_VENDORS}/${vendorId}/fleet/${selectedFleetId}/routes`;
+                const params = new URLSearchParams();
+                if (searchFrom) params.append('from', searchFrom);
+                if (searchTo) params.append('to', searchTo);
+                if (params.toString()) url += `?${params.toString()}`;
 
-            if (params.toString()) {
-                url += `?${params.toString()}`;
+                const res = await fetchWithAuth(url, { method: 'GET' });
+                if (!res.ok) throw new Error('Failed to fetch routes');
+                const data = await res.json();
+                const routeList = data.data || data.routes || data;
+                setRoutes(Array.isArray(routeList) ? routeList : []);
+                setIsLoading(false);
+                return;
             }
 
-            const res = await fetchWithAuth(url, { method: 'GET' });
-            if (!res.ok) throw new Error('Failed to fetch routes');
-            const data = await res.json();
+            // Global Fetch: Iterate over all fleets
+            let activeFleets = currentFleets;
+            if (!activeFleets || activeFleets.length === 0) {
+                try {
+                    const resV = await fetchWithAuth(`${AUTH_ENDPOINTS.GET_VENDORS}/${vendorId}/fleet`);
+                    if (resV.ok) {
+                        const dataV = await resV.json();
+                        activeFleets = dataV.data || dataV.vehicles || dataV.fleet || [];
+                        setFleets(activeFleets);
+                    }
+                } catch(e) {}
+            }
 
-            const routeList = data.data || data.routes || data;
-            setRoutes(Array.isArray(routeList) ? routeList : []);
+            if (!activeFleets || activeFleets.length === 0) {
+                setRoutes([]);
+                setIsLoading(false);
+                return;
+            }
+
+            let allRoutes = [];
+            for (const fleet of activeFleets) {
+                const fId = getVehicleId(fleet);
+                if (!fId) continue;
+
+                let url = `${AUTH_ENDPOINTS.GET_VENDORS}/${vendorId}/fleet/${fId}/routes`;
+                const params = new URLSearchParams();
+                if (searchFrom) params.append('from', searchFrom);
+                if (searchTo) params.append('to', searchTo);
+                if (params.toString()) url += `?${params.toString()}`;
+
+                try {
+                    const res = await fetchWithAuth(url, { method: 'GET' });
+                    if (res.ok) {
+                        const data = await res.json();
+                        const rList = data.data || data.routes || data;
+                        if (Array.isArray(rList)) {
+                            allRoutes = [...allRoutes, ...rList.map(r => ({...r, fleetRef: fleet.vehicleNumber || fleet.vehicle_number || fleet.id}))];
+                        }
+                    }
+                } catch(e) {}
+            }
+            setRoutes(allRoutes);
         } catch (err) {
             setError(err.message);
         } finally {
@@ -128,7 +274,7 @@ const RoutesList = ({ vendorId, vehicleId = 1, title = "Route Management", refre
 
     useEffect(() => {
         fetchRoutes();
-    }, [vendorId, vehicleId, refreshTrigger]);
+    }, [vendorId, selectedFleetId, refreshTrigger]);
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -137,28 +283,75 @@ const RoutesList = ({ vendorId, vehicleId = 1, title = "Route Management", refre
 
     const handleAddRoute = async (e) => {
         e.preventDefault();
-        if (!addForm.from.trim() || !addForm.to.trim()) {
-            Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: 'Please enter both cities', showConfirmButton: false, timer: 2000 });
+        
+        if (!selectedFleetId) {
+            Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: 'Please select a fleet first', showConfirmButton: false, timer: 2000 });
             return;
         }
+
+        let body = {};
+        const fleetIdNum = Number(selectedFleetId);
+        
+        if (routeType === 'ZONE') {
+            if (!routeName || !selectedZoneState || selectedPincodeIds.length === 0) {
+                Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: 'Please complete zone details', showConfirmButton: false, timer: 2000 });
+                return;
+            }
+            body = {
+                fleetId: fleetIdNum,
+                routeType: "ZONE",
+                routeName: routeName,
+                stateId: selectedZoneState.id,
+                selectedPincodeIds: selectedPincodeIds
+            };
+        } else {
+            // Updated CORRIDOR payload with stops array
+            const validStops = corridorStops.filter(s => s.pincodeId);
+            if (validStops.length < 2) {
+                Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: 'At least 2 valid stops required', showConfirmButton: false, timer: 2000 });
+                return;
+            }
+            
+            body = {
+                fleetId: fleetIdNum,
+                routeType: "CORRIDOR",
+                routeName: routeName || `${validStops[0].pincode} to ${validStops[validStops.length-1].pincode}`,
+                stops: validStops.map((s, idx) => ({
+                    stopOrder: idx + 1,
+                    pincodeId: s.pincodeId,
+                    pickupPoint: s.pickupPoint,
+                    dropPoint: s.dropPoint
+                }))
+            };
+        }
+
         setIsAdding(true);
         try {
-            const fromStr = addForm.from.join(', ');
-            const toStr = addForm.to.join(', ');
-            const url = `${AUTH_ENDPOINTS.GET_VENDORS}/${vendorId}/fleet/${vehicleId}/routes?from=${encodeURIComponent(fromStr)}&to=${encodeURIComponent(toStr)}`;
+            const isEditing = !!editingRouteId;
+            let url = `${AUTH_ENDPOINTS.GET_VENDORS}/${vendorId}/fleet/${selectedFleetId}/routes`;
+            if (isEditing) {
+                url += `/${editingRouteId}`;
+            }
 
             const res = await fetchWithAuth(url, {
-                method: 'POST',
+                method: isEditing ? 'PUT' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
             });
 
             if (res.ok) {
-                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Route added successfully', showConfirmButton: false, timer: 3000 });
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: `Route ${isEditing ? 'updated' : 'added'} successfully`, showConfirmButton: false, timer: 3000 });
                 setShowAddModal(false);
                 setAddForm({ from: [], to: [] });
+                setRouteName('');
+                setSelectedZoneState(null);
+                setSelectedPincodeIds([]);
+                setEditingRouteId(null);
+                setCorridorStops([{ id: Date.now(), pincode: null, pincodeId: null, pickupPoint: true, dropPoint: false }, { id: Date.now()+1, pincode: null, pincodeId: null, pickupPoint: false, dropPoint: true }]);
                 fetchRoutes();
+                if (onUpdate) onUpdate();
             } else {
-                let errorTitle = 'Failed to add route';
+                let errorTitle = `Failed to ${isEditing ? 'update' : 'add'} route`;
                 try {
                     const data = await res.json();
                     errorTitle = data.message || data.error || `Server responded with ${res.status}`;
@@ -172,6 +365,200 @@ const RoutesList = ({ vendorId, vehicleId = 1, title = "Route Management", refre
         } finally {
             setIsAdding(false);
         }
+    };
+
+    const handleEditRoute = (route) => {
+        setEditingRouteId(route.routeId || route.id || route._id);
+        
+        if (route.fleetId || route.vehicleId || route.vendorVehicleId) {
+            setSelectedFleetId((route.fleetId || route.vehicleId || route.vendorVehicleId).toString());
+        }
+
+        setRouteType(route.routeType || 'CORRIDOR');
+        setRouteName(route.routeName || '');
+        
+        if (route.routeType === 'ZONE') {
+            setSelectedPincodeIds(route.selectedPincodeIds || []);
+            setSelectedZoneState(null); 
+        } else {
+            if (route.stops && route.stops.length > 0) {
+                setCorridorStops(route.stops.map((s, idx) => ({
+                    id: Date.now() + idx,
+                    pincodeId: s.pincodeId || s.pincode,
+                    pincode: `Stop ${idx + 1}`,
+                    pickupPoint: s.pickupPoint ?? true,
+                    dropPoint: s.dropPoint ?? true
+                })));
+            } else {
+                setCorridorStops([{ id: Date.now(), pincode: null, pincodeId: null, pickupPoint: true, dropPoint: false }, { id: Date.now()+1, pincode: null, pincodeId: null, pickupPoint: false, dropPoint: true }]);
+            }
+        }
+        setShowAddModal(true);
+    };
+
+    const handleDeleteRoute = async (route) => {
+        const routeId = route.routeId || route.id || route._id;
+        const result = await Swal.fire({
+            title: 'Delete Route?',
+            text: `Are you sure you want to delete ${route.routeName || 'this route'}?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: 'Yes, delete it!'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                // Determine current fleet ID, assuming route is linked to a fleet or we fallback
+                const routeFleetId = route.fleetId || route.vehicleId || route.vendorVehicleId || selectedFleetId || vehicleId;
+                const url = `${AUTH_ENDPOINTS.GET_VENDORS}/${vendorId}/fleet/routes/${routeId}`;
+                const res = await fetchWithAuth(url, { method: 'DELETE' });
+                if (res.ok) {
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Route deleted successfully', showConfirmButton: false, timer: 3000 });
+                    fetchRoutes();
+                } else {
+                    const data = await res.json().catch(() => ({}));
+                    throw new Error(data.message || data.error || 'Failed to delete route');
+                }
+            } catch (err) {
+                Swal.fire({ icon: 'error', title: 'Delete Failed', text: err.message });
+            }
+        }
+    };
+
+    // Sub-component for Route Row to handle local expansion state correctly
+    const RouteRow = ({ route, idx }) => {
+        const [isExpanded, setIsExpanded] = useState(false);
+        const isZone = route.routeType === 'ZONE';
+
+        return (
+            <React.Fragment>
+                <tr 
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className="hover:bg-slate-50/50 transition-all cursor-pointer group"
+                >
+                    <td className="px-6 py-5">
+                        <div className="flex items-center gap-4">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors shadow-sm
+                                ${isZone ? 'bg-orange-50 text-orange-600' : 'bg-blue-50 text-blue-600'}`}>
+                                {isZone ? <Globe size={18} /> : <Navigation size={18} />}
+                            </div>
+                            <div>
+                                <div className="text-sm font-bold text-slate-900 uppercase italic tracking-tight">{route.routeName || 'Unnamed Route'}</div>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Ref: {route.routeId || route.id || route._id || `RT-${100 + idx}`}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td className="px-6 py-5">
+                        <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border
+                            ${isZone ? 'bg-orange-50 border-orange-100 text-orange-600' : 'bg-blue-50 border-blue-100 text-blue-600'}`}>
+                            {route.routeType}
+                        </span>
+                    </td>
+                    <td className="px-6 py-5">
+                        <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                                <MapPin size={12} className="text-slate-400" />
+                                {isZone ? `${route.selectedPincodeIds?.length || 0} Pincodes` : `${route.stops?.length || 0} Dynamic Stops`}
+                            </div>
+                            <p className="text-[10px] text-slate-400 uppercase font-medium">{isZone ? 'Regional Cluster' : 'Point-to-Point Corridor'}</p>
+                        </div>
+                    </td>
+                    <td className="px-6 py-5">
+                        <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${route.status === 'Inactive' ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-green-50 text-green-700 border border-green-100'}`}>
+                            {route.status || 'Operational'}
+                        </span>
+                    </td>
+                    <td className="px-6 py-5 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                            <button 
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditRoute(route);
+                                }}
+                                className="p-2 bg-slate-50 text-blue-500 hover:bg-blue-100 rounded-lg transition-colors group-hover:bg-white border border-transparent group-hover:border-slate-100"
+                                title="Edit Route"
+                            >
+                                <Edit2 size={14} />
+                            </button>
+                            <button 
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteRoute(route);
+                                }}
+                                className="p-2 bg-slate-50 text-red-500 hover:bg-red-100 rounded-lg transition-colors group-hover:bg-white border border-transparent group-hover:border-slate-100"
+                                title="Delete Route"
+                            >
+                                <Trash2 size={14} />
+                            </button>
+                            <button 
+                                className={`p-2 rounded-lg transition-colors ${isExpanded ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-400 hover:bg-slate-100 group-hover:bg-white border border-transparent group-hover:border-slate-100 group-hover:text-slate-900'}`}
+                            >
+                                {isExpanded ? <X size={14} /> : <ChevronRight size={14} className={isExpanded ? '' : 'rotate-90'} />}
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                
+                {/* Expandable Detail View */}
+                <AnimatePresence>
+                    {isExpanded && (
+                        <motion.tr
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="bg-slate-50/30"
+                        >
+                            <td colSpan={5} className="px-6 py-6 border-b border-slate-100">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {isZone ? (
+                                        <div className="space-y-3 lg:col-span-3">
+                                            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] italic">Active Zone Pincodes</h4>
+                                            <div className="flex flex-wrap gap-2">
+                                                {route.selectedPincodeIds?.map((pid, i) => (
+                                                    <span key={i} className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 shadow-sm">
+                                                        {pid}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-4 lg:col-span-3">
+                                            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] italic">Corridor Sequence</h4>
+                                            <div className="flex flex-wrap items-center gap-4">
+                                                {route.stops?.sort((a,b) => a.stopOrder - b.stopOrder).map((stop, i) => (
+                                                    <React.Fragment key={i}>
+                                                        <div className="flex flex-col items-center gap-2">
+                                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold border-2
+                                                                ${stop.pickupPoint && stop.dropPoint ? 'bg-purple-50 border-purple-200 text-purple-600' :
+                                                                    stop.pickupPoint ? 'bg-green-50 border-green-200 text-green-600' :
+                                                                    'bg-orange-50 border-orange-200 text-orange-600'}`}>
+                                                                {stop.stopOrder}
+                                                            </div>
+                                                            <div className="text-center">
+                                                                <p className="text-[10px] font-black text-slate-900 uppercase italic">PIN: {stop.pincodeId}</p>
+                                                                <div className="flex gap-1 justify-center mt-1">
+                                                                    {stop.pickupPoint && <span className="w-1 h-1 bg-green-500 rounded-full"></span>}
+                                                                    {stop.dropPoint && <span className="w-1 h-1 bg-orange-500 rounded-full"></span>}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        {i < (route.stops.length - 1) && (
+                                                            <div className="w-8 h-px bg-slate-200"></div>
+                                                        )}
+                                                    </React.Fragment>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </td>
+                        </motion.tr>
+                    )}
+                </AnimatePresence>
+            </React.Fragment>
+        );
     };
 
     return (
@@ -244,54 +631,16 @@ const RoutesList = ({ vendorId, vehicleId = 1, title = "Route Management", refre
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="bg-slate-50 border-b border-slate-100">
-                                    <th className="px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Origin & Destination</th>
-                                    <th className="px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Distance</th>
-                                    <th className="px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Est. Duration</th>
-                                    <th className="px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider text-right">Actions</th>
+                                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Route Identity</th>
+                                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Architecture</th>
+                                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Coverage</th>
+                                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
+                                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
                                 {routes.map((route, idx) => (
-                                    <tr key={route.id || route._id || idx} className="hover:bg-slate-50/50 transition-colors cursor-pointer">
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 bg-slate-100 text-slate-600 rounded-lg flex items-center justify-center">
-                                                    <Navigation size={14} />
-                                                </div>
-                                                <div>
-                                                    <div className="flex items-center gap-2 text-sm font-medium text-slate-900">
-                                                        <span>{route.from || route.origin}</span>
-                                                        <ArrowRight size={14} className="text-slate-400" />
-                                                        <span>{route.to || route.destination}</span>
-                                                    </div>
-                                                    <p className="text-xs text-slate-500 mt-0.5">ID: {route.id || route._id || `RT-${100 + idx}`}</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-1.5 text-sm text-slate-600">
-                                                <MapPin size={14} className="text-slate-400" />
-                                                {route.distance || '---'}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-slate-600">
-                                            <div className="flex items-center gap-1.5">
-                                                <Clock size={14} className="text-slate-400" />
-                                                {route.duration || '---'}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${route.status === 'Inactive' ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-green-50 text-green-700 border border-green-100'}`}>
-                                                {route.status || 'Active'}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-right">
-                                            <button className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-colors">
-                                                <MoreVertical size={16} />
-                                            </button>
-                                        </td>
-                                    </tr>
+                                    <RouteRow key={route.id || route._id || idx} route={route} idx={idx} />
                                 ))}
                             </tbody>
                         </table>
@@ -316,98 +665,221 @@ const RoutesList = ({ vendorId, vehicleId = 1, title = "Route Management", refre
                         >
                             {/* Form Side */}
                             <div className="flex-1 p-6 md:p-8 flex flex-col relative z-10 bg-white">
-                                <div className="flex justify-between items-start mb-8">
+                                <div className="flex justify-between items-start mb-6">
                                     <div>
-                                        <h2 className="text-xl font-semibold text-slate-900">Add New Route</h2>
-                                        <p className="text-sm text-slate-500 mt-1">Configure origin and destination points.</p>
+                                        <h2 className="text-xl font-semibold text-slate-900">{editingRouteId ? 'Edit Route' : 'Add New Route'}</h2>
+                                        <p className="text-sm text-slate-500 mt-1">{editingRouteId ? 'Update operational path for the route.' : 'Select fleet and configure operational path.'}</p>
                                     </div>
                                     <button
-                                        onClick={() => setShowAddModal(false)}
+                                        onClick={() => {
+                                            setShowAddModal(false);
+                                            setEditingRouteId(null);
+                                        }}
                                         className="p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 rounded-full transition-colors"
                                     >
                                         <X size={20} />
                                     </button>
                                 </div>
 
-                                <form onSubmit={handleAddRoute} className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto">
-                                    {/* Pickup Selection */}
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between items-center">
-                                            <label className="text-sm font-medium text-slate-700">Origin Nodes</label>
-                                            {addForm.from.length > 0 && (
-                                                <span className="text-xs font-medium text-slate-500">{addForm.from.length} selected</span>
-                                            )}
-                                        </div>
-                                        <div
-                                            onClick={() => setPickerState({ active: 'from', step: 'states', searchQuery: '' })}
-                                            className={`min-h-[52px] w-full p-2 bg-white border rounded-xl flex flex-wrap gap-2 items-center cursor-pointer transition-all
-                                                ${pickerState.active === 'from' ? 'border-slate-900 ring-1 ring-slate-900' : 'border-slate-200 hover:border-slate-300'}`}
+                                <form onSubmit={handleAddRoute} className="flex-1 flex flex-col gap-5 overflow-y-auto pr-2 custom-scrollbar">
+                                    {/* Fleet Selection */}
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 italic">Assign to Fleet</label>
+                                        <select 
+                                            value={selectedFleetId}
+                                            onChange={(e) => setSelectedFleetId(e.target.value)}
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl font-bold text-slate-900 focus:outline-none italic text-sm"
                                         >
-                                            {addForm.from.length === 0 ? (
-                                                <span className="text-slate-400 text-sm px-2">Select origin points...</span>
-                                            ) : (
-                                                addForm.from.map((node, i) => (
-                                                    <span key={i} className="px-2.5 py-1 bg-slate-50 border border-slate-200 text-slate-700 text-xs font-medium rounded-lg flex items-center gap-1.5">
-                                                        {node}
-                                                        <X size={12}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setAddForm(prev => ({ ...prev, from: prev.from.filter(n => n !== node) }));
-                                                            }}
-                                                            className="text-slate-400 hover:text-red-500 cursor-pointer"
-                                                        />
-                                                    </span>
-                                                ))
-                                            )}
+                                            <option value="">Choose a Fleet...</option>
+                                            {fleets.map((f, idx) => {
+                                                const fId = getVehicleId(f) || (101 + idx);
+                                                return (
+                                                    <option key={fId} value={fId}>
+                                                        ID: {fId} - {f.vehicle || f.vehicleNumber || f.vehicle_number || 'Fleet Item'}
+                                                    </option>
+                                                );
+                                            })}
+                                        </select>
+                                    </div>
+
+                                    {/* Route Mode Switcher */}
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 italic">Route Architecture</label>
+                                        <div className="flex gap-2 p-1 bg-slate-100/50 rounded-xl border border-slate-100">
+                                            {['CORRIDOR', 'ZONE'].map(mode => (
+                                                <button
+                                                    key={mode}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setRouteType(mode);
+                                                        setAddForm({ from: [], to: [] });
+                                                        setSelectedPincodeIds([]);
+                                                        setSelectedZoneState(null);
+                                                    }}
+                                                    className={`flex-1 py-2 rounded-lg font-bold uppercase text-[9px] tracking-widest transition-all ${routeType === mode ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
+                                                >
+                                                    {mode}
+                                                </button>
+                                            ))}
                                         </div>
                                     </div>
 
-                                    {/* Connector */}
-                                    <div className="flex justify-center my-3 relative z-10">
-                                        <div className="w-8 h-8 bg-white border border-slate-100 rounded-full flex items-center justify-center text-slate-300 shadow-sm">
-                                            <ArrowRight size={16} className="rotate-90 md:rotate-0" />
-                                        </div>
-                                    </div>
+                                    {routeType === 'CORRIDOR' ? (
+                                        <div className="space-y-6">
+                                            {/* Route Name for Corridor */}
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 italic">Corridor Label (Optional)</label>
+                                                <input 
+                                                    type="text"
+                                                    value={routeName}
+                                                    onChange={(e) => setRouteName(e.target.value)}
+                                                    placeholder="e.g. Delhi - Kerala Express"
+                                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl font-bold text-slate-900 focus:outline-none italic text-sm"
+                                                />
+                                            </div>
 
-                                    {/* Destination Selection */}
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between items-center">
-                                            <label className="text-sm font-medium text-slate-700">Destination Nodes</label>
-                                            {addForm.to.length > 0 && (
-                                                <span className="text-xs font-medium text-slate-500">{addForm.to.length} selected</span>
-                                            )}
+                                            {/* Dynamic Stops List */}
+                                            <div className="space-y-3">
+                                                <div className="flex justify-between items-center ml-1">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">Route Stops</label>
+                                                    <button 
+                                                        type="button"
+                                                        onClick={() => setCorridorStops(prev => [...prev, { id: Date.now(), pincode: null, pincodeId: null, pickupPoint: true, dropPoint: true }])}
+                                                        className="p-1 px-3 bg-slate-900 text-white rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 hover:bg-slate-800 transition-colors"
+                                                    >
+                                                        <Plus size={12} /> Add Stop
+                                                    </button>
+                                                </div>
+
+                                                <div className="space-y-3">
+                                                    {corridorStops.map((stop, idx) => (
+                                                        <div key={stop.id} className="p-4 bg-white border border-slate-100 rounded-2xl shadow-sm space-y-3 relative group/stop">
+                                                            <div className="flex items-center gap-4">
+                                                                <div className="w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center text-[10px] font-bold text-slate-500">
+                                                                    {idx + 1}
+                                                                </div>
+                                                                <div 
+                                                                    onClick={() => {
+                                                                        setActiveStopIndex(idx);
+                                                                        setPickerState({ active: 'corridor', step: 'states', searchQuery: '' });
+                                                                    }}
+                                                                    className={`flex-1 px-4 py-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-between
+                                                                        ${stop.pincode ? 'bg-slate-50 border-slate-100 text-slate-900' : 'bg-white border-dashed border-slate-300 text-slate-400 italic'}`}
+                                                                >
+                                                                    {stop.pincode || "Click to select Location..."}
+                                                                    <div className="w-6 h-6 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-slate-400">
+                                                                        <MapPin size={12} />
+                                                                    </div>
+                                                                </div>
+                                                                
+                                                                {corridorStops.length > 2 && (
+                                                                    <button 
+                                                                        type="button"
+                                                                        onClick={() => setCorridorStops(prev => prev.filter((_, i) => i !== idx))}
+                                                                        className="p-2 text-slate-300 hover:text-red-500 transition-colors"
+                                                                    >
+                                                                        <X size={16} />
+                                                                    </button>
+                                                                )}
+                                                            </div>
+
+                                                            <div className="flex gap-4 pl-10">
+                                                                <label className="flex items-center gap-2 cursor-pointer group/node">
+                                                                    <input 
+                                                                        type="checkbox" 
+                                                                        checked={stop.pickupPoint}
+                                                                        onChange={(e) => {
+                                                                            const updated = [...corridorStops];
+                                                                            updated[idx].pickupPoint = e.target.checked;
+                                                                            setCorridorStops(updated);
+                                                                        }}
+                                                                        className="hidden"
+                                                                    />
+                                                                    <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all ${stop.pickupPoint ? 'bg-slate-900 border-slate-900' : 'border-slate-200'}`}>
+                                                                        {stop.pickupPoint && <Check size={10} className="text-white" />}
+                                                                    </div>
+                                                                    <span className={`text-[9px] font-bold uppercase tracking-widest ${stop.pickupPoint ? 'text-slate-900' : 'text-slate-400'}`}>Pickup Point</span>
+                                                                </label>
+
+                                                                <label className="flex items-center gap-2 cursor-pointer group/node">
+                                                                    <input 
+                                                                        type="checkbox" 
+                                                                        checked={stop.dropPoint}
+                                                                        onChange={(e) => {
+                                                                            const updated = [...corridorStops];
+                                                                            updated[idx].dropPoint = e.target.checked;
+                                                                            setCorridorStops(updated);
+                                                                        }}
+                                                                        className="hidden"
+                                                                    />
+                                                                    <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all ${stop.dropPoint ? 'bg-slate-900 border-slate-900' : 'border-slate-200'}`}>
+                                                                        {stop.dropPoint && <Check size={10} className="text-white" />}
+                                                                    </div>
+                                                                    <span className={`text-[9px] font-bold uppercase tracking-widest ${stop.dropPoint ? 'text-slate-900' : 'text-slate-400'}`}>Drop Point</span>
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div
-                                            onClick={() => setPickerState({ active: 'to', step: 'states', searchQuery: '' })}
-                                            className={`min-h-[52px] w-full p-2 bg-white border rounded-xl flex flex-wrap gap-2 items-center cursor-pointer transition-all
-                                                ${pickerState.active === 'to' ? 'border-slate-900 ring-1 ring-slate-900' : 'border-slate-200 hover:border-slate-300'}`}
-                                        >
-                                            {addForm.to.length === 0 ? (
-                                                <span className="text-slate-400 text-sm px-2">Select destination points...</span>
-                                            ) : (
-                                                addForm.to.map((node, i) => (
-                                                    <span key={i} className="px-2.5 py-1 bg-slate-50 border border-slate-200 text-slate-700 text-xs font-medium rounded-lg flex items-center gap-1.5">
-                                                        {node}
-                                                        <X size={12}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setAddForm(prev => ({ ...prev, to: prev.to.filter(n => n !== node) }));
-                                                            }}
-                                                            className="text-slate-400 hover:text-red-500 cursor-pointer"
-                                                        />
-                                                    </span>
-                                                ))
+                                    ) : (
+                                        <>
+                                            {/* Zone Name */}
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 italic">Zone Label</label>
+                                                <input 
+                                                    type="text"
+                                                    value={routeName}
+                                                    onChange={(e) => setRouteName(e.target.value)}
+                                                    placeholder="e.g. Delhi NCR Zone"
+                                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl font-bold text-slate-900 focus:outline-none italic text-sm"
+                                                />
+                                            </div>
+
+                                            {/* Zone Hub Selection */}
+                                            <div className="space-y-1.5">
+                                                <div className="flex justify-between items-center ml-1">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">Regional HUB (State)</label>
+                                                    {selectedPincodeIds.length > 0 && (
+                                                        <span className="text-[9px] font-bold text-green-600">{selectedPincodeIds.length} PINCODES ACTIVE</span>
+                                                    )}
+                                                </div>
+                                                <div
+                                                    onClick={() => setPickerState({ active: 'origin', step: 'states', searchQuery: '' })}
+                                                    className={`min-h-[52px] w-full p-3 bg-white border rounded-xl flex items-center justify-between cursor-pointer transition-all
+                                                        ${pickerState.active === 'origin' ? 'border-slate-900 ring-1 ring-slate-900' : 'border-slate-200'}`}
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400">
+                                                            <Globe size={16} />
+                                                        </div>
+                                                        <div>
+                                                            <span className={`text-xs font-bold uppercase ${selectedZoneState ? 'text-slate-900' : 'text-slate-400 italic'}`}>
+                                                                {selectedZoneState ? selectedZoneState.stateName : 'Select Operation HUB...'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <ChevronRight size={16} className="text-slate-300" />
+                                                </div>
+                                            </div>
+
+                                            {isFetchingZoneData && (
+                                                <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg animate-pulse">
+                                                    <Loader2 size={12} className="animate-spin" />
+                                                    <span className="text-[8px] font-bold uppercase tracking-widest">Compiling Zone Pincodes...</span>
+                                                </div>
                                             )}
-                                        </div>
-                                    </div>
+                                        </>
+                                    )}
 
                                     <button
                                         type="submit"
-                                        disabled={isAdding || addForm.from.length === 0 || addForm.to.length === 0}
-                                        className="w-full mt-8 py-3 bg-slate-900 text-white rounded-xl font-medium text-sm shadow-sm disabled:opacity-50 hover:bg-slate-800 transition-colors flex items-center justify-center gap-2"
+                                        disabled={isAdding || !selectedFleetId}
+                                        className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold italic uppercase text-xs tracking-[0.2em] shadow-lg shadow-slate-100 disabled:opacity-50 hover:bg-black transition-all flex items-center justify-center gap-3"
                                     >
-                                        {isAdding && <Loader2 size={16} className="animate-spin" />}
-                                        {isAdding ? 'Creating Route...' : 'Create Route'}
+                                        {isAdding ? <Loader2 size={16} className="animate-spin" /> : (editingRouteId ? <Edit2 size={16} /> : <Plus size={16} />)}
+                                        {isAdding ? (editingRouteId ? 'UPDATING ROUTE...' : 'PROVISIONING ROUTE...') : (editingRouteId ? 'UPDATE ROUTE' : 'CONFIRM ROUTE')}
                                     </button>
                                 </form>
                             </div>
@@ -480,24 +952,41 @@ const RoutesList = ({ vendorId, vehicleId = 1, title = "Route Management", refre
                                                         {pickerState.step === 'cities' && locations.cities
                                                             .filter(c => c.cityName.toLowerCase().includes(pickerState.searchQuery.toLowerCase()))
                                                             .map(city => (
-                                                                <button
+                                                                <CityListItem 
                                                                     key={city.id}
-                                                                    onClick={() => handleLocationClick('city', city)}
-                                                                    className="w-full p-3 flex items-center justify-between bg-white border border-slate-200 rounded-lg hover:border-slate-400 hover:shadow-sm transition-all group"
-                                                                >
-                                                                    <span className="text-sm font-medium text-slate-700 group-hover:text-slate-900">{city.cityName}</span>
-                                                                    <ChevronRight size={16} className="text-slate-300 group-hover:text-slate-500" />
-                                                                </button>
+                                                                    city={city}
+                                                                    isZoneMode={routeType === 'ZONE'}
+                                                                    selectedPincodeIds={selectedPincodeIds}
+                                                                    onClick={(c) => handleLocationClick('city', c)}
+                                                                    onToggle={async (c) => {
+                                                                        try {
+                                                                            const res = await fetch(`https://dev.amankumarr.in/api/location/cities/${c.id}/pincodes`);
+                                                                            const data = await res.json();
+                                                                            if (data.success) {
+                                                                                const cityPincodeIds = data.data.map(p => p.id);
+                                                                                const allPresent = cityPincodeIds.every(id => selectedPincodeIds.includes(id));
+                                                                                if (allPresent) {
+                                                                                    setSelectedPincodeIds(prev => prev.filter(id => !cityPincodeIds.includes(id)));
+                                                                                } else {
+                                                                                    setSelectedPincodeIds(prev => [...new Set([...prev, ...cityPincodeIds])]);
+                                                                                }
+                                                                            }
+                                                                        } catch (err) { console.error(err); }
+                                                                    }}
+                                                                />
                                                             ))}
 
                                                         {pickerState.step === 'pincodes' && locations.pincodes
                                                             .filter(p => p.pincode.includes(pickerState.searchQuery))
                                                             .map(pin => {
                                                                 const displayValue = `${pickerState.selectedCity.cityName} - ${pin.pincode}`;
-                                                                const isSelected = addForm[pickerState.active]?.includes(displayValue);
+                                                                const isSelected = routeType === 'ZONE' 
+                                                                    ? selectedPincodeIds.includes(pin.id)
+                                                                    : addForm[pickerState.active]?.includes(displayValue);
                                                                 return (
                                                                     <button
                                                                         key={pin.id}
+                                                                        type="button"
                                                                         onClick={() => handleLocationClick('pincode', pin)}
                                                                         className={`w-full p-3 flex items-center justify-between rounded-lg transition-all border 
                                                                             ${isSelected ? 'bg-slate-900 border-slate-900 text-white shadow-md' : 'bg-white border-slate-200 hover:border-slate-400'}`}
@@ -516,14 +1005,32 @@ const RoutesList = ({ vendorId, vehicleId = 1, title = "Route Management", refre
 
                                             {/* Action Footer */}
                                             <div className="p-4 border-t border-slate-200 bg-slate-50/80 backdrop-blur-md absolute bottom-0 left-0 right-0 z-20 space-y-2">
-                                                {addForm[pickerState.active]?.length > 0 && (
+                                                {(routeType === 'ZONE' ? selectedPincodeIds.length > 0 : corridorStops.some(s => s.pincodeId)) && (
                                                     <button
                                                         onClick={closePicker}
                                                         className="w-full py-2.5 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors shadow-sm"
                                                     >
-                                                        Done ({addForm[pickerState.active].length} selected)
+                                                        Done ({routeType === 'ZONE' ? selectedPincodeIds.length : corridorStops.filter(s => s.pincodeId).length} selected)
                                                     </button>
                                                 )}
+                                                
+                                                {pickerState.step === 'pincodes' && routeType === 'ZONE' && (
+                                                    <button
+                                                        onClick={() => {
+                                                            const allPincodeIds = locations.pincodes.map(p => p.id);
+                                                            const allSelected = allPincodeIds.every(id => selectedPincodeIds.includes(id));
+                                                            if (allSelected) {
+                                                                setSelectedPincodeIds(prev => prev.filter(id => !allPincodeIds.includes(id)));
+                                                            } else {
+                                                                setSelectedPincodeIds(prev => [...new Set([...prev, ...allPincodeIds])]);
+                                                            }
+                                                        }}
+                                                        className="w-full py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors"
+                                                    >
+                                                        {locations.pincodes.every(p => selectedPincodeIds.includes(p.id)) ? 'Deselect All in City' : 'Select All in City'}
+                                                    </button>
+                                                )}
+
                                                 {pickerState.step !== 'states' && (
                                                     <button
                                                         onClick={() => setPickerState(prev => ({

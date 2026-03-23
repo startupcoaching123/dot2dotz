@@ -66,52 +66,45 @@ const DashboardLayout = ({ children, sidebarItems, roleName }) => {
       {/* Main Content Area */}
       <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarOpen ? 'lg:ml-64' : 'lg:ml-20'}`}>
         {/* Header */}
-        <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 sm:px-8 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200 px-4 sm:px-8 h-20 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4 flex-1">
             <button
               onClick={toggleSidebar}
-              className="p-2 hover:bg-slate-100 rounded-lg lg:flex hidden"
+              className="p-2 hover:bg-gray-100 text-gray-500 rounded-lg lg:flex hidden transition-colors"
             >
               <Menu size={20} />
             </button>
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="p-2 hover:bg-slate-100 rounded-lg lg:hidden"
+              className="p-2 hover:bg-gray-100 text-gray-500 rounded-lg lg:hidden transition-colors"
             >
               <Menu size={20} />
             </button>
-            <div className="hidden sm:block">
-              <h1 className="text-xs font-semibold uppercase tracking-wider text-slate-400">{roleName}</h1>
-              <p className="text-lg font-semibold text-slate-900">Overview</p>
+            
+            {/* Minimal Search Bar */}
+            <div className="flex-1 max-w-xl hidden sm:flex items-center gap-2.5 bg-gray-50/50 hover:bg-gray-50 px-4 py-2.5 rounded-xl border border-gray-200 focus-within:border-gray-300 focus-within:bg-white focus-within:shadow-sm transition-all group">
+              <Search size={18} className="text-gray-400 group-focus-within:text-gray-600 transition-colors" />
+              <input
+                type="text"
+                placeholder="Search everything..."
+                className="bg-transparent border-none outline-none text-sm w-full text-gray-900 placeholder:text-gray-400 font-medium"
+              />
+              <div className="hidden lg:flex items-center gap-1 font-semibold text-[10px] text-gray-400">
+                <span className="px-1.5 py-0.5 rounded bg-white border border-gray-200 shadow-sm">⌘</span>
+                <span className="px-1.5 py-0.5 rounded bg-white border border-gray-200 shadow-sm">K</span>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-6">
-            <div className="hidden md:flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-xl group focus-within:ring-2 ring-slate-200 transition-all">
-              <Search size={18} className="text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search..."
-                className="bg-transparent border-none outline-none text-sm w-40 lg:w-64"
-              />
+          {/* Profile Section */}
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <div className="text-right hidden md:block">
+              <p className="text-sm font-semibold text-gray-900">{user?.name || 'Administrator'}</p>
+              <p className="text-xs font-medium text-gray-500">{user?.role || 'User'}</p>
             </div>
-
-            <button className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl relative transition-all">
-              <Bell size={20} />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+            <button className="w-10 h-10 bg-gray-50 border border-gray-200 text-gray-700 rounded-xl flex items-center justify-center hover:bg-gray-100 transition-colors">
+              <User size={20} />
             </button>
-
-            <div className="h-10 w-[1px] bg-slate-200 mx-2 hidden sm:block"></div>
-
-            <div className="flex items-center gap-3 pl-2">
-              <div className="text-right hidden sm:block">
-                <p className="text-sm font-semibold text-slate-900">{user?.name || 'John Doe'}</p>
-                <p className="text-[10px] font-medium uppercase tracking-wider text-slate-400">{user?.role || 'Admin'}</p>
-              </div>
-              <div className="w-10 h-10 bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center shadow-sm">
-                <User size={20} />
-              </div>
-            </div>
           </div>
         </header>
 

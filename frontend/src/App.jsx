@@ -17,6 +17,8 @@ import ReadyToShip from './components/ReadyToShip';
 import ContactPage from './pages/ContactPage';
 import LocationsPage from './pages/LocationsPage';
 import PTLEstimationPage from './pages/PTLEstimationPage';
+import FTLEstimationPage from './pages/FTLEstimationPage';
+import FTLFormPage from './pages/FTLFormPage';
 import BookingSummaryPage from './pages/BookingSummaryPage';
 import DashboardPage from './pages/DashboardPage';
 import FullLoadPage from './pages/FullLoadPage';
@@ -35,6 +37,7 @@ import AdminFinanceDashboard from './pages/dashboards/finance/AdminFinanceDashbo
 import ClientOwnerDashboard from './pages/dashboards/client/ClientOwnerDashboard';
 import ClientDashboard from './pages/dashboards/client/ClientDashboard';
 import ClientStaffDashboard from './pages/dashboards/client/ClientStaffDashboard';
+import ClientProfilePage from './pages/dashboards/client/ClientProfilePage';
 import LeadsManagement from './pages/dashboards/client/LeadsManagement';
 import VendorDashboard from './pages/dashboards/vendor/VendorDashboard';
 import VendorStaffDashboard from './pages/dashboards/vendor/VendorStaffDashboard';
@@ -45,6 +48,9 @@ import PaymentSlabsManagement from './pages/dashboards/superadmin/PaymentSlabsMa
 import LeadManagementPage from './pages/dashboards/superadmin/LeadManagementPage';
 import VendorLoadsPage from './pages/dashboards/vendor/VendorLoadsPage';
 import VendorRoutesPage from './pages/dashboards/vendor/VendorRoutesPage';
+import VendorFleetPage from './pages/dashboards/vendor/VendorFleetPage';
+import PaymentSuccess from './pages/dashboards/shared/PaymentSuccess';
+import PaymentFailure from './pages/dashboards/shared/PaymentFailure';
 
 // ScrollToTop component to handle view resetting on route change
 const ScrollToTop = () => {
@@ -91,6 +97,7 @@ const AppContent = () => {
     location.pathname.startsWith('/signup') ||
     location.pathname.startsWith('/clients/register') ||
     location.pathname.startsWith('/vendors/register');
+  const isDashboardPage = location.pathname.startsWith('/dashboard');
 
   return (
     <div className="min-h-screen bg-white flex flex-col font-sans selection:bg-red-600 selection:text-white overflow-x-hidden">
@@ -105,6 +112,8 @@ const AppContent = () => {
           <Route path="/services/full-load" element={<FullLoadPage />} />
           <Route path="/services/partial-load" element={<PartialLoadPage />} />
           <Route path="/ptl-estimate" element={<PTLEstimationPage />} />
+          <Route path="/ftl-estimate" element={<FTLEstimationPage />} />
+          <Route path="/services/full-load-form" element={<FTLFormPage />} />
           <Route path="/booking-summary" element={<BookingSummaryPage />} />
           <Route path="/dashboard" element={
             <ProtectedRoute>
@@ -161,6 +170,11 @@ const AppContent = () => {
               <LeadsManagement />
             </ProtectedRoute>
           } />
+          <Route path="/dashboard/client/profile" element={
+            <ProtectedRoute allowedRoles={['CLIENT', 'CLIENT_OWNER', 'CLIENT_STAFF']}>
+              <ClientProfilePage />
+            </ProtectedRoute>
+          } />
           <Route path="/dashboard/client-staff" element={
             <ProtectedRoute allowedRoles={['CLIENT_STAFF']}>
               <ClientStaffDashboard />
@@ -181,6 +195,11 @@ const AppContent = () => {
               <VendorLoadsPage />
             </ProtectedRoute>
           } />
+          <Route path="/dashboard/vendor/fleet" element={
+            <ProtectedRoute allowedRoles={['VENDOR', 'VENDOR_OWNER']}>
+              <VendorFleetPage />
+            </ProtectedRoute>
+          } />
           <Route path="/dashboard/vendor/routes" element={
             <ProtectedRoute allowedRoles={['VENDOR', 'VENDOR_OWNER']}>
               <VendorRoutesPage />
@@ -197,20 +216,26 @@ const AppContent = () => {
           <Route path="/vendors/register" element={<VendorRegister />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/payment/success/:leadId" element={<PaymentSuccess />} />
+          <Route path="/payment/failure/:leadId" element={<PaymentFailure />} />
         </Routes>
       </main>
-      {!isAuthPage && <Footer />}
+      {!isAuthPage && !isDashboardPage && <Footer />}
     </div>
   );
 };
 
+import { ToastProvider } from './components/Toast/Toast';
+
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <AppContent />
-      </Router>
-    </AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </AuthProvider>
+    </ToastProvider>
   );
 }
 

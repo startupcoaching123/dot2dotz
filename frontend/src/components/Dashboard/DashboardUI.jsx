@@ -17,27 +17,29 @@ export const StatCard = ({ title, value, icon: Icon, trend, color }) => {
   return (
     <motion.div
       whileHover={{ y: -5 }}
-      className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm transition-all hover:shadow-xl hover:border-slate-300"
+      className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm transition-all hover:shadow-xl hover:border-slate-200"
     >
       <div className="flex justify-between items-start mb-6">
-        <div className={`p-3 rounded-xl border ${colors[color] || colors.slate}`}>
-          <Icon size={20} />
+        <div className={`p-4 rounded-2xl border ${colors[color] || colors.slate}`}>
+          <Icon size={24} />
         </div>
-        <div className={`flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider ${trend >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-          {trend >= 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
-          {Math.abs(trend)}%
-        </div>
+        {trend !== undefined && (
+          <div className={`flex items-center gap-1 text-[10px] font-black uppercase tracking-widest ${trend >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {trend >= 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+            {Math.abs(trend)}%
+          </div>
+        )}
       </div>
       <div>
-        <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">{title}</p>
-        <h3 className="text-xl font-bold text-slate-900 tracking-tight">{value}</h3>
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">{title}</p>
+        <h3 className="text-2xl font-black italic tracking-tighter text-slate-900">{value}</h3>
       </div>
     </motion.div>
   );
 };
 
 export const DashboardGrid = ({ children }) => (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
     {children}
   </div>
 );

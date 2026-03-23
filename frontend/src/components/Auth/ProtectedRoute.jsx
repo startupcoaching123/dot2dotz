@@ -15,9 +15,8 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   }
 
   if (!isAuthenticated) {
-    // Redirect to login but save the current location to redirect back after login
-    // Defaulting to client-ftl as the primary landing login
-    // return <Navigate to="/" state={{ from: location }} replace />;
+    // Redirect to home if not authenticated
+    return <Navigate to="/" state={{ from: location }} replace />;
   }
 
   // Robust role extraction: check role and userType, and normalize to UPPERCASE
@@ -27,8 +26,8 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   if (allowedRoles.length > 0) {
     const normalizedAllowedRoles = allowedRoles.map(r => r.toUpperCase());
     if (!normalizedAllowedRoles.includes(userRole)) {
-      // Role not authorized, redirect to their default dashboard
-      // return <Navigate to="/dashboard" replace />;
+      // Role not authorized, redirect to their default dashboard dispatcher
+      return <Navigate to="/" replace />;
     }
   }
 

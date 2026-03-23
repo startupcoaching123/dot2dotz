@@ -4,7 +4,7 @@ import Swal from 'sweetalert2';
 import { AUTH_ENDPOINTS, API_BASE_URL } from '../../api/endpoints';
 import fetchWithAuth from '../../FetchWithAuth';
 
-const DriversList = ({ vendorId, title = "Driver Management", refreshTrigger = 0 }) => {
+const DriversList = ({ vendorId, title = "Driver Management", refreshTrigger = 0, onUpdate }) => {
     const [drivers, setDrivers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
@@ -138,15 +138,9 @@ const DriversList = ({ vendorId, title = "Driver Management", refreshTrigger = 0
                 targetUrl: url,
             });
 
-            // Use raw fetch for FormData to avoid fetchWithAuth's JSON header
-            const accessToken = document.cookie.split('; ').find(c => c.startsWith('accessToken='))?.split('=')[1];
-            const res = await fetch(url, {
+            const res = await fetchWithAuth(url, {
                 method: 'PUT',
-                body: formData,
-                credentials: 'include',
-                headers: {
-                    ...(accessToken && { Authorization: `Bearer ${accessToken}` })
-                }
+                body: formData
             });
 
             if (res.ok) {
@@ -157,6 +151,7 @@ const DriversList = ({ vendorId, title = "Driver Management", refreshTrigger = 0
                 setDrivers(prev => prev.map(d => getDriverId(d) === driverId ? merged : d));
                 setSelectedDriver(merged);
                 setIsEditing(false);
+                if (onUpdate) onUpdate();
                 Swal.fire({
                     toast: true,
                     position: 'top-end',
@@ -218,15 +213,9 @@ const DriversList = ({ vendorId, title = "Driver Management", refreshTrigger = 0
             if (addFormData.image) formData.append('image', addFormData.image);
             if (addFormData.proof) formData.append('proof', addFormData.proof);
 
-            // Raw fetch is needed because fetchWithAuth sets application/json which breaks multipart
-            const accessToken = document.cookie.split('; ').find(c => c.startsWith('accessToken='))?.split('=')[1];
-            const res = await fetch(url, {
+            const res = await fetchWithAuth(url, {
                 method: 'POST',
-                body: formData,
-                credentials: 'include',
-                headers: {
-                    ...(accessToken && { Authorization: `Bearer ${accessToken}` })
-                }
+                body: formData
             });
 
             if (res.ok) {
@@ -234,6 +223,7 @@ const DriversList = ({ vendorId, title = "Driver Management", refreshTrigger = 0
                 setShowAddModal(false);
                 setAddFormData({ driverName: '', mobileNo: '', address: '', licence: '', image: '', proof: '' });
                 fetchDrivers();
+                if (onUpdate) onUpdate();
             } else {
                 let errorTitle = 'Failed to add driver';
                 try {

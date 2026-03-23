@@ -9,11 +9,12 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Check authentication using cookies (now via fetchWithAuth for auto-refresh)
+  // Check authentication (cookie-based)
   const checkAuth = async () => {
     try {
       const res = await fetchWithAuth(AUTH_ENDPOINTS.ME, {
         method: "GET",
+        credentials: "include", // 🔥 important for cookies
       });
 
       if (!res.ok) {
@@ -25,16 +26,21 @@ export const AuthProvider = ({ children }) => {
       const data = await res.json();
       const userData = data.user || data.data || data;
 
-      // Robust role extraction and normalization
-      const role = userData.role || userData.userType || userData.user_type || userData.type || "";
+      // Normalize role
+      const role =
+        userData.role ||
+        userData.userType ||
+        userData.user_type ||
+        userData.type ||
+        "";
+
       const normalizedUser = {
         ...userData,
-        role: typeof role === 'string' ? role.toUpperCase() : ""
+        role: typeof role === "string" ? role.toUpperCase() : "",
       };
 
       setUser(normalizedUser);
       setIsAuthenticated(true);
-
     } catch (err) {
       console.error("Auth check failed:", err);
       setUser(null);
@@ -44,39 +50,49 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Run on app start
   useEffect(() => {
     checkAuth();
   }, []);
 
-  // After successful login request
+  // Login (after backend sets cookie)
   const login = async (userData) => {
     if (userData) {
-      const role = userData.role || userData.userType || userData.user_type || userData.type || "";
+      const role =
+        userData.role ||
+        userData.userType ||
+        userData.user_type ||
+        userData.type ||
+        "";
+
       const normalizedUser = {
         ...userData,
-        role: typeof role === 'string' ? role.toUpperCase() : ""
+        role: typeof role === "string" ? role.toUpperCase() : "",
       };
+
       setUser(normalizedUser);
       setIsAuthenticated(true);
       setLoading(false);
     } else {
-      await checkAuth();
+      await checkAuth(); // fallback
     }
   };
 
+  // Logout (server clears cookie)
   const logout = async () => {
     try {
       await fetch(AUTH_ENDPOINTS.LOGOUT, {
         method: "POST",
-        credentials: "include",
+        credentials: "include", // 🔥 required
       });
     } catch (err) {
       console.error("Logout error:", err);
     }
 
+    // ❌ removed localStorage + document.cookie (not needed)
+
     setUser(null);
     setIsAuthenticated(false);
+
     window.location.href = "/";
   };
 
@@ -88,7 +104,7 @@ export const AuthProvider = ({ children }) => {
         loading,
         login,
         logout,
-        refreshUser: checkAuth
+        refreshUser: checkAuth,
       }}
     >
       {children}
