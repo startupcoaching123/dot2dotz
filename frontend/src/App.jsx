@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 
 import Navbar from "./components/Navbar/Navbar";
@@ -17,11 +17,11 @@ import ReadyToShip from './components/ReadyToShip';
 import ContactPage from './pages/ContactPage';
 import LocationsPage from './pages/LocationsPage';
 import PTLEstimationPage from './pages/PTLEstimationPage';
-import FTLEstimationPage from './pages/FTLEstimationPage';
-import FTLFormPage from './pages/FTLFormPage';
+import FTLEstimationPage from './pages/FullLoad/FTLEstimationPage';
+import FTLFormPage from './pages/FullLoad/FTLFormPage';
 import BookingSummaryPage from './pages/BookingSummaryPage';
 import DashboardPage from './pages/DashboardPage';
-import FullLoadPage from './pages/FullLoadPage';
+import FullLoadPage from './pages/FullLoad/FullLoadPage';
 import PartialLoadPage from './pages/PartialLoadPage';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import LoginPage from './pages/Login/LoginPage';
@@ -34,9 +34,11 @@ import ClientManagementPage from './pages/dashboards/superadmin/ClientManagement
 import VendorManagementPage from './pages/dashboards/superadmin/VendorManagementPage';
 import VehicleManagementPage from './pages/dashboards/superadmin/VehicleManagementPage';
 import AdminFinanceDashboard from './pages/dashboards/finance/AdminFinanceDashboard';
-import ClientOwnerDashboard from './pages/dashboards/client/ClientOwnerDashboard';
+import ClientOwnerDashboard from './pages/dashboards/client/ClientOwnerDashboard';   
 import ClientDashboard from './pages/dashboards/client/ClientDashboard';
+import EnhancedClientDashboard from './pages/dashboards/client/EnhancedClientDashboard';
 import ClientStaffDashboard from './pages/dashboards/client/ClientStaffDashboard';
+import ShipmentTrackingPage from './pages/dashboards/client/ShipmentTrackingPage';
 import ClientProfilePage from './pages/dashboards/client/ClientProfilePage';
 import LeadsManagement from './pages/dashboards/client/LeadsManagement';
 import VendorDashboard from './pages/dashboards/vendor/VendorDashboard';
@@ -162,12 +164,27 @@ const AppContent = () => {
           } />
           <Route path="/dashboard/client" element={
             <ProtectedRoute allowedRoles={['CLIENT', 'CLIENT_OWNER']}>
+              <EnhancedClientDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/client/classic" element={
+            <ProtectedRoute allowedRoles={['CLIENT', 'CLIENT_OWNER']}>
               <ClientOwnerDashboard />
             </ProtectedRoute>
           } />
           <Route path="/dashboard/client/leads" element={
-            <ProtectedRoute allowedRoles={['CLIENT', 'CLIENT_OWNER']}>
+            <ProtectedRoute allowedRoles={['CLIENT', 'CLIENT_OWNER', 'CLIENT_STAFF']}>
               <LeadsManagement />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/client/track" element={
+            <ProtectedRoute allowedRoles={['CLIENT', 'CLIENT_OWNER', 'CLIENT_STAFF']}>
+              <ShipmentTrackingPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/client/shipments" element={
+            <ProtectedRoute allowedRoles={['CLIENT', 'CLIENT_OWNER', 'CLIENT_STAFF']}>
+              <ShipmentTrackingPage />
             </ProtectedRoute>
           } />
           <Route path="/dashboard/client/profile" element={
@@ -176,9 +193,7 @@ const AppContent = () => {
             </ProtectedRoute>
           } />
           <Route path="/dashboard/client-staff" element={
-            <ProtectedRoute allowedRoles={['CLIENT_STAFF']}>
-              <ClientStaffDashboard />
-            </ProtectedRoute>
+            <ClientStaffDashboard />
           } />
           <Route path="/dashboard/vendor" element={
             <ProtectedRoute allowedRoles={['VENDOR', 'VENDOR_OWNER']}>
@@ -218,6 +233,7 @@ const AppContent = () => {
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/payment/success/:leadId" element={<PaymentSuccess />} />
           <Route path="/payment/failure/:leadId" element={<PaymentFailure />} />
+          <Route path="/dashboard/client/quotes" element={<Navigate to="/dashboard/client/leads" replace />} />
         </Routes>
       </main>
       {!isAuthPage && !isDashboardPage && <Footer />}

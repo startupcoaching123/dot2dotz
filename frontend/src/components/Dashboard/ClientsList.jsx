@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Mail, Phone, Building2, Check, X, AlertCircle, MoreVertical } from 'lucide-react';
+import { Search, Filter, Mail, Phone, Building2, Check, X, AlertCircle, MoreVertical, User, Building } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { AUTH_ENDPOINTS } from '../../api/endpoints';
 import fetchWithAuth from '../../FetchWithAuth';
 
-const ClientsList = ({ active = true, verified = false, title = "Pending Client Verifications", customActions, refreshTrigger = 0 }) => {
+const ClientsList = ({ active, verified, title = "Clients List", customActions, refreshTrigger = 0 }) => {
     const [clients, setClients] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
@@ -246,192 +246,198 @@ const ClientsList = ({ active = true, verified = false, title = "Pending Client 
     };
 
     const filteredClients = clients.filter(client => {
-        if (!searchTerm) return true;
+        // Search filter matching
         const searchLower = searchTerm.toLowerCase();
-        return (
+        const searchMatches = !searchTerm || (
             (client.clientName && client.clientName.toLowerCase().includes(searchLower)) ||
             (client.companyName && client.companyName.toLowerCase().includes(searchLower)) ||
             (client.email && client.email.toLowerCase().includes(searchLower))
         );
+
+        // Core Status matches (backup to server filtering errors)
+        const activeMatches = active === undefined || active === null || String(client.active) === String(active);
+        const verifiedMatches = verified === undefined || verified === null || String(client.verified) === String(verified);
+
+        return searchMatches && activeMatches && verifiedMatches;
     });
 
+    const inputClasses = "w-full px-3 py-2 bg-white border border-gray-200 focus:border-blue-500 rounded-lg text-sm font-medium transition-all outline-none shadow-sm";
+    const labelClasses = "block text-[10px] font-bold uppercase text-gray-400 tracking-wider mb-1";
+
     return (
-        <>
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                <div className="p-8 border-b border-slate-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div>
-                        <h3 className="text-xl font-bold flex items-center gap-2">
-                            <span className="w-1.5 h-6 bg-red-600 rounded-full"></span>
-                            {title}
-                        </h3>
-                        <p className="text-slate-500 text-sm mt-1">Found {filteredClients.length} clients</p>
-                    </div>
-
-                    <div className="flex items-center gap-2 w-full sm:w-auto">
-                        {customActions}
-                        <div className="relative flex-grow">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                            <input
-                                type="text"
-                                placeholder="Search clients..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-11 pr-6 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-medium focus:outline-none focus:border-red-600 transition-all"
-                            />
-                        </div>
-                        <button className="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:bg-slate-100 transition-all border border-slate-100">
-                            <Filter size={20} />
-                        </button>
-                    </div>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden text-gray-900">
+            {/* List Header */}
+            <div className="px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-50/50">
+                <div>
+                    <h3 className="text-base font-semibold text-gray-900">
+                        {title}
+                    </h3>
+                    <p className="text-gray-500 text-xs mt-0.5">{filteredClients.length} registered clients discovered</p>
                 </div>
 
-                <div className="p-0 overflow-x-auto">
-                    {isLoading ? (
-                        <div className="py-20 flex flex-col items-center justify-center gap-4">
-                            <div className="w-10 h-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-                            <p className="text-slate-400 font-semibold text-xs">Fetching clients...</p>
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                    {customActions}
+                    <div className="relative flex-grow">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                        <input
+                            type="text"
+                            placeholder="Search name or company..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 transition-all placeholder:text-gray-400"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <div className="overflow-x-auto">
+                {isLoading ? (
+                    <div className="py-20 flex flex-col items-center justify-center gap-3">
+                        <div className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                        <p className="text-gray-400 text-xs font-medium uppercase tracking-widest">Loading clientele...</p>
+                    </div>
+                ) : error ? (
+                    <div className="py-20 text-center">
+                        <div className="w-12 h-12 bg-red-50 text-red-500 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <AlertCircle size={24} />
                         </div>
-                    ) : error ? (
-                        <div className="py-20 text-center">
-                            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <AlertCircle size={32} />
-                            </div>
-                            <p className="text-red-500 font-bold uppercase text-xs italic">{error}</p>
-                            <button onClick={() => window.location.reload()} className="mt-4 text-[10px] font-black underline uppercase tracking-widest">Retry</button>
+                        <p className="text-gray-800 text-sm font-semibold">{error}</p>
+                        <button onClick={() => window.location.reload()} className="mt-3 text-xs font-medium text-blue-600 hover:text-blue-700 underline underline-offset-4">Try Again</button>
+                    </div>
+                ) : filteredClients.length === 0 ? (
+                    <div className="py-20 text-center">
+                        <div className="w-12 h-12 bg-gray-50 text-gray-300 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <User size={24} />
                         </div>
-                    ) : filteredClients.length === 0 ? (
-                        <div className="py-20 text-center">
-                            <div className="w-16 h-16 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <Check size={32} />
-                            </div>
-                            <p className="text-slate-400 font-bold italic tracking-widest text-xs uppercase">No clients found</p>
-                        </div>
-                    ) : (
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="bg-slate-50/50">
-                                    <th className="px-8 py-4 text-xs font-semibold uppercase text-slate-400 tracking-wider">Client / Company</th>
-                                    <th className="px-8 py-4 text-xs font-semibold uppercase text-slate-400 tracking-wider">Contact Details</th>
-                                    <th className="px-8 py-4 text-xs font-semibold uppercase text-slate-400 tracking-wider">Verification</th>
-                                    <th className="px-8 py-4 text-xs font-semibold uppercase text-slate-400 tracking-wider text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-50">
-                                {filteredClients.map((client) => (
-                                    <tr
-                                        key={getClientId(client)}
-                                        className="hover:bg-slate-50/50 transition-colors group cursor-pointer"
-                                        onClick={() => handleClientClick(client)}
-                                    >
-                                        <td className="px-8 py-6">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-lg shadow-sm">
-                                                    {client.clientName?.charAt(0) || 'C'}
-                                                </div>
-                                                <div>
-                                                    <p className="font-semibold text-slate-900 group-hover:text-red-600 transition-colors uppercase">{client.clientName}</p>
-                                                    <div className="flex items-center gap-1.5 mt-1">
-                                                        <Building2 size={12} className="text-slate-300" />
-                                                        <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">{client.companyName || 'N/A'}</p>
-                                                    </div>
+                        <p className="text-gray-500 text-sm font-medium">No client accounts found</p>
+                    </div>
+                ) : (
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-gray-50/10">
+                                <th className="px-6 py-3 text-[11px] font-semibold uppercase text-gray-500 tracking-wider">Client details</th>
+                                <th className="px-6 py-3 text-[11px] font-semibold uppercase text-gray-500 tracking-wider">Contact</th>
+                                <th className="px-6 py-3 text-[11px] font-semibold uppercase text-gray-500 tracking-wider">Verification</th>
+                                <th className="px-6 py-3 text-[11px] font-semibold uppercase text-gray-500 tracking-wider text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                            {filteredClients.map((client) => (
+                                <tr
+                                    key={getClientId(client)}
+                                    className="hover:bg-gray-50/50 transition-colors group cursor-pointer"
+                                    onClick={() => handleClientClick(client)}
+                                >
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center font-bold text-sm">
+                                                {client.clientName?.charAt(0) || 'C'}
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors text-sm">{client.clientName}</p>
+                                                <div className="flex items-center gap-1.5 mt-0.5">
+                                                    <Building size={12} className="text-gray-400" />
+                                                    <p className="text-[11px] text-gray-500 font-medium">{client.companyName || 'Lead Account'}</p>
                                                 </div>
                                             </div>
-                                        </td>
-                                        <td className="px-8 py-6">
-                                            <div className="space-y-1.5">
-                                                <div className="flex items-center gap-2 group/contact">
-                                                    <Mail size={14} className="text-slate-300 group-hover/contact:text-blue-500 transition-colors" />
-                                                    <p className="text-xs font-medium text-slate-600">{client.email}</p>
-                                                </div>
-                                                <div className="flex items-center gap-2 group/contact">
-                                                    <Phone size={14} className="text-slate-300 group-hover/contact:text-green-500 transition-colors" />
-                                                    <p className="text-xs font-medium text-slate-600">{client.mobile}</p>
-                                                </div>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="space-y-1">
+                                            <div className="flex items-center gap-2 group/contact">
+                                                <Mail size={12} className="text-gray-400" />
+                                                <p className="text-xs text-gray-600">{client.email}</p>
                                             </div>
-                                        </td>
-                                        <td className="px-8 py-6">
-                                            <span className="px-3 py-1 bg-amber-50 text-amber-600 text-[10px] font-black uppercase tracking-widest rounded-full border border-amber-100">
-                                                {client.verified ? 'Verified' : 'Pending Verification'}
-                                            </span>
-                                        </td>
-                                        <td className="px-8 py-6 text-right">
-                                            <div className="flex items-center justify-end gap-2">
-                                                {!client.verified ? (
-                                                    <>
-                                                        <button
-                                                            className="p-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-all border border-green-100"
-                                                            title="Approve"
-                                                            onClick={(e) => handleStatusUpdate(e, client, { verified: true }, 'Client verification approved')}
-                                                        >
-                                                            <Check size={18} />
-                                                        </button>
-                                                        <button
-                                                            className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all border border-red-100"
-                                                            title="Reject"
-                                                            onClick={(e) => handleStatusUpdate(e, client, { active: false }, 'Client registration rejected')}
-                                                        >
-                                                            <X size={18} />
-                                                        </button>
-                                                    </>
-                                                ) : (
+                                            <div className="flex items-center gap-2 group/contact">
+                                                <Phone size={12} className="text-gray-400" />
+                                                <p className="text-xs text-gray-600">+91 {client.mobile}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <span className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-tight rounded-md border ${client.verified
+                                            ? 'bg-green-50 text-green-700 border-green-100'
+                                            : 'bg-amber-50 text-amber-700 border-amber-100'}`}>
+                                            {client.verified ? 'Verified' : 'Pending'}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                        <div className="flex items-center justify-end gap-1.5">
+                                            {!client.verified ? (
+                                                <>
                                                     <button
-                                                        className={`p-2 rounded-lg transition-all border ${client.active ? 'bg-amber-50 text-amber-600 border-amber-100 hover:bg-amber-100' : 'bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-100'}`}
-                                                        title={client.active ? "Block Client" : "Unblock Client"}
-                                                        onClick={(e) => handleStatusUpdate(e, client, { active: !client.active }, client.active ? 'Client account blocked' : 'Client account unblocked')}
+                                                        className="p-1.5 bg-white text-green-600 rounded-md hover:bg-green-50 border border-gray-200 transition-all shadow-sm"
+                                                        title="Approve"
+                                                        onClick={(e) => handleStatusUpdate(e, client, { verified: true }, 'Client verification approved')}
                                                     >
-                                                        {client.active ? <X size={18} /> : <Check size={18} />}
+                                                        <Check size={16} />
                                                     </button>
-                                                )}
+                                                    <button
+                                                        className="p-1.5 bg-white text-red-600 rounded-md hover:bg-red-50 border border-gray-200 transition-all shadow-sm"
+                                                        title="Reject"
+                                                        onClick={(e) => handleStatusUpdate(e, client, { active: false }, 'Client registration rejected')}
+                                                    >
+                                                        <X size={16} />
+                                                    </button>
+                                                </>
+                                            ) : (
                                                 <button
-                                                    className="p-2 text-slate-400 hover:text-slate-900 transition-colors"
-                                                    onClick={(e) => e.stopPropagation()}
+                                                    className={`p-1.5 rounded-md transition-all border border-gray-200 shadow-sm ${client.active ? 'bg-white text-amber-600 hover:bg-amber-50' : 'bg-white text-blue-600 hover:bg-blue-50'}`}
+                                                    title={client.active ? "Pause Account" : "Resume Account"}
+                                                    onClick={(e) => handleStatusUpdate(e, client, { active: !client.active }, client.active ? 'Client account blocked' : 'Client account unblocked')}
                                                 >
-                                                    <MoreVertical size={18} />
+                                                    {client.active ? <X size={16} /> : <Check size={16} />}
                                                 </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    )}
-                </div>
+                                            )}
+                                            <button
+                                                className="p-1.5 text-gray-400 hover:text-gray-900 transition-colors"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                <MoreVertical size={16} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
             </div>
 
             {/* Client Details Modal */}
             {showClientDetails && selectedClient && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[100] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-xl flex flex-col">
+                <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col animate-in fade-in zoom-in-95 duration-200">
                         {/* Modal Header */}
-                        <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                            <div className="flex items-center gap-4">
-                                <div className="w-14 h-14 bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-600 rounded-xl flex items-center justify-center text-xl shadow-inner border border-white">
+                        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                            <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 bg-white text-blue-600 rounded-lg flex items-center justify-center font-bold text-lg border border-gray-200 shadow-sm">
                                     {selectedClient.clientName?.charAt(0) || 'C'}
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-bold text-slate-900">
+                                    <h2 className="text-xl font-bold text-gray-900 px-0.5">
                                         {selectedClient.clientName}
                                     </h2>
-                                    <div className="flex items-center gap-2 mt-1">
-                                        <span className={`px-3 py-1 text-[10px] font-semibold uppercase tracking-wider rounded-full border ${selectedClient.verified ? 'bg-green-50 text-green-600 border-green-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
-                                            {selectedClient.verified ? 'Verified' : 'Pending'}
+                                    <div className="flex items-center gap-2 mt-0.5">
+                                        <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded border ${selectedClient.verified ? 'bg-green-50 text-green-700 border-green-100' : 'bg-amber-50 text-amber-700 border-amber-100'}`}>
+                                            {selectedClient.verified ? 'Verified' : 'Unverified'}
                                         </span>
-                                        <span className={`px-3 py-1 text-[10px] font-semibold uppercase tracking-wider rounded-full border ${selectedClient.active ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
-                                            {selectedClient.active ? 'Active' : 'Inactive'}
+                                        <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded border ${selectedClient.active ? 'bg-blue-50 text-blue-700 border-blue-100' : 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+                                            {selectedClient.active ? 'Active' : 'Paused'}
                                         </span>
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => setIsEditing(!isEditing)}
-                                    className={`px-6 py-2.5 rounded-xl font-semibold text-xs tracking-wide transition-all ${isEditing ? 'bg-amber-100 text-amber-700' : 'bg-slate-900 text-white hover:bg-slate-800 shadow-sm'}`}
+                                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isEditing ? 'bg-blue-100 text-blue-700' : 'bg-gray-900 text-white hover:bg-gray-800'}`}
                                 >
                                     {isEditing ? 'Cancel Edit' : 'Edit Profile'}
                                 </button>
                                 <button
                                     onClick={() => setShowClientDetails(false)}
-                                    className="p-3 bg-slate-100 text-slate-400 rounded-xl hover:text-red-600 transition-all"
+                                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                                 >
                                     <X size={20} />
                                 </button>
@@ -439,25 +445,29 @@ const ClientsList = ({ active = true, verified = false, title = "Pending Client 
                         </div>
 
                         {/* Modal Body */}
-                        <div className="p-8 overflow-y-auto flex-1 bg-white">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                {/* Personal Info */}
+                        <div className="p-8 overflow-y-auto flex-1 bg-white custom-scrollbar mt-1">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                                {/* Details Column */}
                                 <div className="space-y-6">
-                                    <h3 className="text-sm font-black uppercase text-slate-400 tracking-widest border-b border-slate-100 pb-2">Contact Details</h3>
-                                    <div className="space-y-4">
+                                    <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight border-b border-gray-200 pb-2 flex items-center gap-2">
+                                        <User size={14} className="text-blue-600" />
+                                        Primary Contact
+                                    </h3>
+                                    <div className="space-y-5">
                                         {['clientName', 'email', 'mobile', 'phone', 'mobile2'].map(field => (
                                             <div key={field}>
-                                                <label className="block text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1.5">{field.replace(/([A-Z])/g, ' $1').trim()}</label>
+                                                <label className={labelClasses}>{field === 'clientName' ? 'Full Name' : field.replace(/([A-Z])/g, ' $1').trim()}</label>
                                                 {isEditing ? (
                                                     <input
                                                         name={field}
                                                         value={editConfig[field] || ''}
                                                         onChange={handleEditChange}
-                                                        className="w-full px-4 py-2 bg-white border border-slate-200 focus:border-blue-500 rounded-xl text-sm font-bold transition-colors"
+                                                        className={inputClasses}
+                                                        placeholder={`Enter ${field}`}
                                                     />
                                                 ) : (
-                                                    <p className="text-sm font-bold text-slate-900 bg-slate-50 px-4 py-2.5 rounded-xl border border-transparent">
-                                                        {selectedClient[field] || '—'}
+                                                    <p className="text-sm font-medium text-gray-800 py-1 border-b border-transparent">
+                                                        {selectedClient[field] || 'Not provided'}
                                                     </p>
                                                 )}
                                             </div>
@@ -465,26 +475,36 @@ const ClientsList = ({ active = true, verified = false, title = "Pending Client 
                                     </div>
                                 </div>
 
-                                {/* Company Info */}
+                                {/* Business Column */}
                                 <div className="space-y-6">
-                                    <h3 className="text-sm font-black uppercase text-slate-400 tracking-widest border-b border-slate-100 pb-2">Business Data</h3>
-                                    <div className="space-y-4">
+                                    <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight border-b border-gray-200 pb-2 flex items-center gap-2">
+                                        <Building2 size={14} className="text-blue-600" />
+                                        Business Profile
+                                    </h3>
+                                    <div className="space-y-5">
                                         {['companyName', 'companyType', 'gst', 'panNo', 'aadhaar'].map(field => (
-                                            <div key={field}>
-                                                <label className="block text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1.5 flex items-center gap-1.5">
-                                                    {field === 'companyName' && <Building2 size={12} />}
-                                                    {field.replace(/([A-Z])/g, ' $1').trim()}
-                                                </label>
+                                            <div key={field} className="relative">
+                                                <label className={labelClasses}>{field.replace(/([A-Z])/g, ' $1').trim()}</label>
                                                 {isEditing ? (
-                                                    <input
-                                                        name={field}
-                                                        value={editConfig[field] || ''}
-                                                        onChange={handleEditChange}
-                                                        className="w-full px-4 py-2 bg-white border border-slate-200 focus:border-blue-500 rounded-xl text-sm font-bold transition-colors uppercase"
-                                                    />
+                                                    field === 'companyType' ? (
+                                                        <select name={field} value={editConfig[field] || ''} onChange={handleEditChange} className={inputClasses}>
+                                                            <option value="Private Limited">Private Limited</option>
+                                                            <option value="Public Limited">Public Limited</option>
+                                                            <option value="Proprietorship">Proprietorship</option>
+                                                            <option value="Partnership">Partnership</option>
+                                                        </select>
+                                                    ) : (
+                                                        <input
+                                                            name={field}
+                                                            value={editConfig[field] || ''}
+                                                            onChange={handleEditChange}
+                                                            className={`${inputClasses} ${['gst', 'panNo'].includes(field) ? 'uppercase' : ''}`}
+                                                            placeholder={`Enter ${field}`}
+                                                        />
+                                                    )
                                                 ) : (
-                                                    <p className="text-sm font-bold text-slate-900 bg-slate-50 px-4 py-2.5 rounded-xl border border-transparent uppercase">
-                                                        {selectedClient[field] || '—'}
+                                                    <p className="text-sm font-medium text-gray-800 py-1 border-b border-transparent uppercase">
+                                                        {selectedClient[field] || 'Not verified'}
                                                     </p>
                                                 )}
                                             </div>
@@ -492,37 +512,39 @@ const ClientsList = ({ active = true, verified = false, title = "Pending Client 
                                     </div>
                                 </div>
 
-                                {/* Address Info */}
-                                <div className="space-y-6 md:col-span-2">
-                                    <h3 className="text-sm font-black uppercase text-slate-400 tracking-widest border-b border-slate-100 pb-2">Registration Address</h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {/* Address Section */}
+                                <div className="space-y-6 md:col-span-2 mt-4">
+                                    <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight border-b border-gray-200 pb-2">Billing Address</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                         <div className="md:col-span-3">
-                                            <label className="block text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1.5">Full Address</label>
+                                            <label className={labelClasses}>Full Address</label>
                                             {isEditing ? (
                                                 <input
                                                     name="registerAddress"
                                                     value={editConfig.registerAddress || ''}
                                                     onChange={handleEditChange}
-                                                    className="w-full px-4 py-2 bg-white border border-slate-200 focus:border-blue-500 rounded-xl text-sm font-bold transition-colors"
+                                                    className={inputClasses}
+                                                    placeholder="Building No, Street, Landmark"
                                                 />
                                             ) : (
-                                                <p className="text-sm font-bold text-slate-900 bg-slate-50 px-4 py-2.5 rounded-xl border border-transparent">
-                                                    {selectedClient.registerAddress || '—'}
+                                                <p className="text-sm font-medium text-gray-800 py-1">
+                                                    {selectedClient.registerAddress || 'No address registered'}
                                                 </p>
                                             )}
                                         </div>
                                         {['registerCity', 'registerState', 'registerPinCode'].map(field => (
                                             <div key={field}>
-                                                <label className="block text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1.5">{field.replace('register', '')}</label>
+                                                <label className={labelClasses}>{field.replace('register', '').replace(/([A-Z])/g, ' $1').trim()}</label>
                                                 {isEditing ? (
                                                     <input
                                                         name={field}
                                                         value={editConfig[field] || ''}
                                                         onChange={handleEditChange}
-                                                        className="w-full px-4 py-2 bg-white border border-slate-200 focus:border-blue-500 rounded-xl text-sm font-bold transition-colors"
+                                                        className={inputClasses}
+                                                        placeholder={field.replace('register', '')}
                                                     />
                                                 ) : (
-                                                    <p className="text-sm font-bold text-slate-900 bg-slate-50 px-4 py-2.5 rounded-xl border border-transparent">
+                                                    <p className="text-sm font-medium text-gray-800 py-1">
                                                         {selectedClient[field] || '—'}
                                                     </p>
                                                 )}
@@ -535,30 +557,24 @@ const ClientsList = ({ active = true, verified = false, title = "Pending Client 
 
                         {/* Modal Footer */}
                         {isEditing && (
-                            <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-4">
+                            <div className="px-8 py-4 border-t border-gray-100 bg-gray-50/50 flex justify-end gap-3 translate-y-[-1px]">
                                 <button
-                                    onClick={() => {
-                                        setIsEditing(false);
-                                        setEditConfig(selectedClient); // Reset config on discard
-                                    }}
-                                    className="px-8 py-3 bg-white border border-slate-200 text-slate-600 rounded-xl font-semibold text-xs tracking-wide hover:bg-slate-50 transition-all"
+                                    onClick={() => setIsEditing(false)}
+                                    className="px-5 py-2 text-sm font-semibold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-all font-inter"
                                 >
-                                    Discard Changes
+                                    Cancel Changes
                                 </button>
                                 <button
                                     onClick={submitClientUpdate}
                                     disabled={updateSpinner}
-                                    className="px-8 py-3 bg-blue-600 text-white rounded-xl font-semibold text-xs tracking-wide hover:bg-blue-700 transition-all shadow-sm flex items-center gap-2 disabled:opacity-70"
+                                    className="px-7 py-2 bg-blue-600 text-white rounded-lg font-bold text-sm shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all flex items-center gap-2.5 disabled:opacity-70 focus:ring-4 focus:ring-blue-500/20"
                                 >
                                     {updateSpinner ? (
-                                        <>
-                                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                            Saving...
-                                        </>
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                                     ) : (
                                         <>
                                             <Check size={16} />
-                                            Save Changes
+                                            Save Profile
                                         </>
                                     )}
                                 </button>
@@ -567,7 +583,7 @@ const ClientsList = ({ active = true, verified = false, title = "Pending Client 
                     </div>
                 </div>
             )}
-        </>
+        </div>
     );
 };
 

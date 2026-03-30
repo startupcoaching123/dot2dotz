@@ -2,7 +2,7 @@
 export const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || '';
 
 export const AUTH_ENDPOINTS = {
-  LOGIN: `/api/auth/login`,
+  LOGIN: `${API_BASE_URL}/api/auth/login`,
   REFRESH: `/api/auth/refresh`,
   LOGOUT: `/api/auth/logout`,
   FORGOT_PASSWORD: `/api/auth/forgot-password`,

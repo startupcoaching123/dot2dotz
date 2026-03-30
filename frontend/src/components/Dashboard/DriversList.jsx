@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Mail, Phone, MapPin, Check, X, AlertCircle, MoreVertical, User, Plus, Camera, CreditCard } from 'lucide-react';
+import { Search, Filter, Mail, Phone, MapPin, Check, X, AlertCircle, MoreVertical, User, Plus, Camera, CreditCard, FileText, ExternalLink } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { AUTH_ENDPOINTS, API_BASE_URL } from '../../api/endpoints';
 import fetchWithAuth from '../../FetchWithAuth';
@@ -25,18 +25,17 @@ const DriversList = ({ vendorId, title = "Driver Management", refreshTrigger = 0
         mobileNo: '',
         address: '',
         licence: '',
+        proofType: 'LICENCE',
         image: '',
-        proof: ''
+        proofImage: '' // Changed from 'proof' to 'proofImage'
     });
 
     const getDriverId = (d) => {
         if (!d) return null;
-        // Search for driver-specific IDs first, avoiding fall-through to vendor_id
         const possibleIds = ['driverId', 'driver_id', '_id', 'id'];
         for (const key of possibleIds) {
             if (d[key] && !String(d[key]).includes('vendor')) return d[key];
         }
-        // Last resort: if it looks like a Mongo ID or number but isn't explicitly 'vendor_id'
         return d.driverId || d.vender_id || d.vendor_id;
     };
 
@@ -45,8 +44,6 @@ const DriversList = ({ vendorId, title = "Driver Management", refreshTrigger = 0
         setIsLoading(true);
         setError('');
         try {
-            // URL: /api/vendors/:vendorId/drivers?active=true
-            // URL: /api/vendors/:vendorId/drivers?active=true
             const url = `${AUTH_ENDPOINTS.VENDOR_DRIVERS(vendorId)}?active=true`;
             const res = await fetchWithAuth(url, { method: 'GET' });
             if (!res.ok) throw new Error('Failed to fetch drivers');
@@ -75,9 +72,8 @@ const DriversList = ({ vendorId, title = "Driver Management", refreshTrigger = 0
     const handleEditChange = (e) => {
         const { name, value } = e.target;
 
-        // Restriction for mobile number (10 digits)
         if (name === 'mobileNo') {
-            const val = value.replace(/\D/g, ''); // Remove non-digits
+            const val = value.replace(/\D/g, ''); 
             if (val.length <= 10) {
                 setEditConfig(prev => ({ ...prev, [name]: val }));
             }
@@ -102,66 +98,36 @@ const DriversList = ({ vendorId, title = "Driver Management", refreshTrigger = 0
         setUpdateSpinner(true);
         try {
             const driverId = getDriverId(selectedDriver);
-            if (!driverId) {
-                console.error("ID Identification Failure. Keys available:", Object.keys(selectedDriver));
-                throw new Error('Could not identify unique Driver ID for update');
-            }
+            if (!driverId) throw new Error('Could not identify unique Driver ID for update');
 
-            // Validation
-            if (!editConfig.driverName?.trim()) {
-                throw new Error('Driver Name is required');
-            }
+            if (!editConfig.driverName?.trim()) throw new Error('Driver Name is required');
+            if (!/^[6-9]\d{9}$/.test(editConfig.mobileNo)) throw new Error('Mobile Number must be 10 digits starting with 6-9');
 
-            if (!/^[6-9]\d{9}$/.test(editConfig.mobileNo)) {
-                throw new Error('Mobile Number must be 10 digits starting with 6-9');
-            }
-
-            // URL: /api/vendors/1/drivers/1
             const url = `${AUTH_ENDPOINTS.VENDOR_DRIVERS(vendorId)}/${driverId}`;
 
-            // Use FormData for multipart file upload during update
             const formData = new FormData();
             formData.append('driverName', editConfig.driverName || '');
             formData.append('mobileNo', editConfig.mobileNo || '');
             formData.append('address', editConfig.address || '');
             formData.append('licence', editConfig.licence || '');
+            formData.append('proofType', editConfig.proofType || 'LICENCE');
 
-            if (editConfig.image instanceof File) {
-                formData.append('image', editConfig.image);
-            }
-            if (editConfig.proof instanceof File) {
-                formData.append('proof', editConfig.proof);
-            }
+            if (editConfig.image instanceof File) formData.append('image', editConfig.image);
+            // Append as proofImage
+            if (editConfig.proofImage instanceof File) formData.append('proofImage', editConfig.proofImage);
 
-            console.log('🚀 DRIVER UPDATE DEBUG:', {
-                requestId: driverId,
-                targetUrl: url,
-            });
-
-            const res = await fetchWithAuth(url, {
-                method: 'PUT',
-                body: formData
-            });
+            const res = await fetchWithAuth(url, { method: 'PUT', body: formData });
 
             if (res.ok) {
                 const data = await res.json();
-                const updated = data.data || data.driver || payload;
-                const merged = { ...selectedDriver, ...(typeof updated === 'object' ? updated : payload) };
+                const updated = data.data || data.driver || editConfig;
+                const merged = { ...selectedDriver, ...(typeof updated === 'object' ? updated : editConfig) };
 
                 setDrivers(prev => prev.map(d => getDriverId(d) === driverId ? merged : d));
                 setSelectedDriver(merged);
                 setIsEditing(false);
                 if (onUpdate) onUpdate();
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'success',
-                    title: 'Driver updated successfully',
-                    showConfirmButton: false,
-                    timer: 3000,
-                    background: '#fff',
-                    iconColor: '#2563eb'
-                });
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Driver updated successfully', showConfirmButton: false, timer: 3000 });
             } else {
                 let errorMsg = 'Server Update Error';
                 try {
@@ -173,14 +139,7 @@ const DriversList = ({ vendorId, title = "Driver Management", refreshTrigger = 0
                 throw new Error(errorMsg);
             }
         } catch (err) {
-            console.error('Update Error:', err);
-            Swal.fire({
-                icon: 'error',
-                title: 'Operation Failed',
-                text: err.message,
-                confirmButtonColor: '#2563eb',
-                footer: '<span style="color:red">Error 500: Usually indicates a backend processing issue</span>'
-            });
+            Swal.fire({ icon: 'error', title: 'Operation Failed', text: err.message });
         } finally {
             setUpdateSpinner(false);
         }
@@ -189,7 +148,6 @@ const DriversList = ({ vendorId, title = "Driver Management", refreshTrigger = 0
     const handleAddSubmit = async (e) => {
         e.preventDefault();
 
-        // Validation
         if (!addFormData.driverName?.trim()) {
             Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: 'Driver Name is required', showConfirmButton: false, timer: 3000 });
             return;
@@ -204,24 +162,24 @@ const DriversList = ({ vendorId, title = "Driver Management", refreshTrigger = 0
         try {
             const url = `${AUTH_ENDPOINTS.VENDOR_DRIVERS(vendorId)}`;
 
-            // Use FormData to allow file uploads (image & proof)
             const formData = new FormData();
             formData.append('driverName', addFormData.driverName);
             formData.append('mobileNo', addFormData.mobileNo);
             formData.append('address', addFormData.address);
             formData.append('licence', addFormData.licence);
+            formData.append('proofType', addFormData.proofType); 
+            
             if (addFormData.image) formData.append('image', addFormData.image);
-            if (addFormData.proof) formData.append('proof', addFormData.proof);
+            // Append as proofImage
+            if (addFormData.proofImage) formData.append('proofImage', addFormData.proofImage);
 
-            const res = await fetchWithAuth(url, {
-                method: 'POST',
-                body: formData
-            });
+            const res = await fetchWithAuth(url, { method: 'POST', body: formData });
 
             if (res.ok) {
                 Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Driver added successfully', showConfirmButton: false, timer: 3000 });
                 setShowAddModal(false);
-                setAddFormData({ driverName: '', mobileNo: '', address: '', licence: '', image: '', proof: '' });
+                // Reset state with proofImage
+                setAddFormData({ driverName: '', mobileNo: '', address: '', licence: '', proofType: 'LICENCE', image: '', proofImage: '' });
                 fetchDrivers();
                 if (onUpdate) onUpdate();
             } else {
@@ -235,13 +193,7 @@ const DriversList = ({ vendorId, title = "Driver Management", refreshTrigger = 0
                 throw new Error(errorTitle);
             }
         } catch (err) {
-            console.error("DRIVE REG ERROR:", err);
-            Swal.fire({
-                icon: 'error',
-                title: 'Registration Failed',
-                text: err.message,
-                footer: `Status: ${err.message.includes('403') ? 'Forbidden (Check vendor permissions)' : 'Error'}`
-            });
+            Swal.fire({ icon: 'error', title: 'Registration Failed', text: err.message });
         } finally {
             setIsAdding(false);
         }
@@ -251,6 +203,14 @@ const DriversList = ({ vendorId, title = "Driver Management", refreshTrigger = 0
         (d.driverName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
         (d.mobileNo?.toLowerCase() || '').includes(searchTerm.toLowerCase())
     );
+
+    const formatProofType = (type) => {
+        if (!type) return 'Document';
+        if (type === 'PAN_CARD') return 'PAN Card';
+        if (type === 'AADHAAR') return 'Aadhar Card';
+        if (type === 'LICENCE') return 'Driving Licence';
+        return type;
+    };
 
     return (
         <div className="space-y-6">
@@ -279,8 +239,7 @@ const DriversList = ({ vendorId, title = "Driver Management", refreshTrigger = 0
                             onClick={() => setShowAddModal(true)}
                             className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-xl font-bold uppercase text-[10px] tracking-wider hover:bg-blue-700 transition-all shadow-sm"
                         >
-                            <Plus size={14} />
-                            Add Driver
+                            <Plus size={14} /> Add Driver
                         </button>
                     </div>
                 </div>
@@ -346,7 +305,7 @@ const DriversList = ({ vendorId, title = "Driver Management", refreshTrigger = 0
             {/* Add Driver Modal */}
             {showAddModal && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+                    <div className="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl">
                         <div className="p-8 border-b border-slate-50 flex justify-between items-center">
                             <div>
                                 <h1 className="text-lg font-bold tracking-tight text-slate-900">Add New Driver</h1>
@@ -355,7 +314,7 @@ const DriversList = ({ vendorId, title = "Driver Management", refreshTrigger = 0
                             <button onClick={() => setShowAddModal(false)} className="p-2 bg-slate-100 text-slate-400 rounded-xl hover:text-red-500 transition-all"><X size={20} /></button>
                         </div>
                         <form onSubmit={handleAddSubmit} className="p-8 space-y-4">
-                            <div className="grid grid-cols-1 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-semibold uppercase text-slate-500">Driver Name</label>
                                     <input
@@ -371,12 +330,9 @@ const DriversList = ({ vendorId, title = "Driver Management", refreshTrigger = 0
                                         value={addFormData.mobileNo} 
                                         onChange={(e) => {
                                             const val = e.target.value.replace(/\D/g, '');
-                                            if (val.length <= 10) {
-                                                setAddFormData({ ...addFormData, mobileNo: val });
-                                            }
+                                            if (val.length <= 10) setAddFormData({ ...addFormData, mobileNo: val });
                                         }}
-                                        placeholder="Mobile number"
-                                        maxLength={10}
+                                        placeholder="Mobile number" maxLength={10}
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -388,6 +344,18 @@ const DriversList = ({ vendorId, title = "Driver Management", refreshTrigger = 0
                                     />
                                 </div>
                                 <div className="space-y-2">
+                                    <label className="text-[10px] font-semibold uppercase text-slate-500">Proof Type</label>
+                                    <select
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl font-bold text-xs focus:bg-white focus:border-blue-600 outline-none transition-all"
+                                        value={addFormData.proofType}
+                                        onChange={(e) => setAddFormData({ ...addFormData, proofType: e.target.value })}
+                                    >
+                                        <option value="LICENCE">Driving Licence</option>
+                                        <option value="AADHAAR">Aadhar Card</option>
+                                        <option value="PAN_CARD">PAN Card</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2 md:col-span-2">
                                     <label className="text-[10px] font-semibold uppercase text-slate-500">Full Address</label>
                                     <input
                                         className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl font-bold text-xs focus:bg-white focus:border-blue-600 outline-none transition-all"
@@ -396,37 +364,36 @@ const DriversList = ({ vendorId, title = "Driver Management", refreshTrigger = 0
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-semibold uppercase text-slate-500">Driver Photo</label>
-                                        <div className="relative group/file">
-                                            <input
-                                                type="file" name="image" accept="image/*"
-                                                className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                                                onChange={(e) => handleFileChange(e)}
-                                            />
-                                            <div className="w-full px-4 py-3 bg-slate-50 border border-dashed border-slate-200 rounded-xl flex items-center gap-3 group-hover/file:border-blue-500 transition-all">
-                                                <Camera size={14} className="text-slate-400" />
-                                                <span className="text-[10px] font-bold text-slate-500 truncate">
-                                                    {addFormData.image ? addFormData.image.name : 'Upload Photo'}
-                                                </span>
-                                            </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-semibold uppercase text-slate-500">Driver Photo (JPG/PNG)</label>
+                                    <div className="relative group/file">
+                                        <input
+                                            type="file" name="image" accept="image/*"
+                                            className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                                            onChange={(e) => handleFileChange(e)}
+                                        />
+                                        <div className="w-full px-4 py-3 bg-slate-50 border border-dashed border-slate-200 rounded-xl flex items-center gap-3 group-hover/file:border-blue-500 transition-all">
+                                            <Camera size={14} className="text-slate-400" />
+                                            <span className="text-[10px] font-bold text-slate-500 truncate">
+                                                {addFormData.image ? addFormData.image.name : 'Upload Photo'}
+                                            </span>
                                         </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-semibold uppercase text-slate-500">Proof Document</label>
-                                        <div className="relative group/file">
-                                            <input
-                                                type="file" name="proof"
-                                                className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                                                onChange={(e) => handleFileChange(e)}
-                                            />
-                                            <div className="w-full px-4 py-3 bg-slate-50 border border-dashed border-slate-200 rounded-xl flex items-center gap-3 group-hover/file:border-blue-500 transition-all">
-                                                <CreditCard size={14} className="text-slate-400" />
-                                                <span className="text-[10px] font-bold text-slate-500 truncate">
-                                                    {addFormData.proof ? addFormData.proof.name : 'Upload Proof (PDF/JPG)'}
-                                                </span>
-                                            </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-semibold uppercase text-slate-500">Proof Document (PDF/Image)</label>
+                                    <div className="relative group/file">
+                                        {/* Input name changed to proofImage */}
+                                        <input
+                                            type="file" name="proofImage" accept=".pdf,image/*"
+                                            className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                                            onChange={(e) => handleFileChange(e)}
+                                        />
+                                        <div className="w-full px-4 py-3 bg-slate-50 border border-dashed border-slate-200 rounded-xl flex items-center gap-3 group-hover/file:border-blue-500 transition-all">
+                                            <FileText size={14} className="text-slate-400" />
+                                            <span className="text-[10px] font-bold text-slate-500 truncate">
+                                                {addFormData.proofImage ? addFormData.proofImage.name : `Upload ${formatProofType(addFormData.proofType)}`}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -506,6 +473,16 @@ const DriversList = ({ vendorId, title = "Driver Management", refreshTrigger = 0
                                             </div>
                                         )}
                                     </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-semibold uppercase text-slate-500 tracking-wider ml-1">Residential Address</label>
+                                        {isEditing ? (
+                                            <textarea name="address" value={editConfig.address || ''} onChange={handleEditChange} rows={3} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-xs focus:bg-white focus:border-blue-500 transition-all outline-none resize-none" />
+                                        ) : (
+                                            <div className="p-4 bg-slate-50 rounded-2xl border border-transparent hover:border-slate-100 transition-all">
+                                                <p className="text-sm font-bold text-slate-900 flex items-start gap-3 leading-relaxed underline decoration-slate-200 underline-offset-4 decoration-dotted"><MapPin size={16} className="text-red-500 mt-1 flex-shrink-0" />{selectedDriver.address || 'N/A'}</p>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="space-y-6">
                                     <div className="space-y-2">
@@ -526,39 +503,63 @@ const DriversList = ({ vendorId, title = "Driver Management", refreshTrigger = 0
                                             </div>
                                         ) : (
                                             <div className="p-4 bg-slate-50 rounded-2xl border border-transparent hover:border-slate-100 transition-all overflow-hidden text-ellipsis whitespace-nowrap">
-                                                <p className="text-[10px] font-bold text-slate-400 flex items-center gap-3"><Camera size={16} className="text-slate-300 flex-shrink-0" />{selectedDriver.image || 'No custom image'}</p>
+                                                <p className="text-[10px] font-bold text-slate-400 flex items-center gap-3"><Camera size={16} className="text-slate-300 flex-shrink-0" />Photo Uploaded</p>
                                             </div>
                                         )}
                                     </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-semibold uppercase text-slate-500 tracking-wider ml-1">Proof Type</label>
+                                        {isEditing ? (
+                                            <select
+                                                name="proofType"
+                                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-xs focus:bg-white focus:border-blue-500 outline-none transition-all"
+                                                value={editConfig.proofType || 'LICENCE'}
+                                                onChange={handleEditChange}
+                                            >
+                                                <option value="LICENCE">Driving Licence</option>
+                                                <option value="AADHAAR">Aadhar Card</option>
+                                                <option value="PAN_CARD">PAN Card</option>
+                                            </select>
+                                        ) : (
+                                            <div className="p-4 bg-slate-50 rounded-2xl border border-transparent hover:border-slate-100 transition-all">
+                                                <p className="text-sm font-bold text-slate-900 flex items-center gap-3"><FileText size={16} className="text-indigo-500" />{formatProofType(selectedDriver.proofType)}</p>
+                                            </div>
+                                        )}
+                                    </div>
+
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-semibold uppercase text-slate-500 tracking-wider ml-1">Proof Document</label>
                                         {isEditing ? (
                                             <div className="relative group/file">
+                                                {/* Input name changed to proofImage */}
                                                 <input
-                                                    type="file" name="proof"
+                                                    type="file" name="proofImage" accept=".pdf,image/*"
                                                     className="absolute inset-0 opacity-0 cursor-pointer z-10"
                                                     onChange={(e) => handleFileChange(e, true)}
                                                 />
                                                 <div className="w-full px-4 py-3 bg-white border border-dashed border-slate-200 rounded-xl flex items-center gap-3 group-hover/file:border-blue-500 transition-all">
-                                                    <CreditCard size={14} className="text-slate-400" />
+                                                    <FileText size={14} className="text-slate-400" />
                                                     <span className="text-[10px] font-bold text-slate-500 truncate">
-                                                        {editConfig.proof instanceof File ? editConfig.proof.name : 'Update Proof'}
+                                                        {editConfig.proofImage instanceof File ? editConfig.proofImage.name : 'Update Proof Document'}
                                                     </span>
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="p-4 bg-slate-50 rounded-2xl border border-transparent hover:border-slate-100 transition-all overflow-hidden text-ellipsis whitespace-nowrap">
-                                                <p className="text-[10px] font-bold text-slate-400 flex items-center gap-3"><CreditCard size={16} className="text-slate-300 flex-shrink-0" />{selectedDriver.proof || 'No proof document'}</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-semibold uppercase text-slate-500 tracking-wider ml-1">Residential Address</label>
-                                        {isEditing ? (
-                                            <textarea name="address" value={editConfig.address || ''} onChange={handleEditChange} rows={3} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-xs focus:bg-white focus:border-blue-500 transition-all outline-none resize-none" />
-                                        ) : (
                                             <div className="p-4 bg-slate-50 rounded-2xl border border-transparent hover:border-slate-100 transition-all">
-                                                <p className="text-sm font-bold text-slate-900 flex items-start gap-3 leading-relaxed underline decoration-slate-200 underline-offset-4 decoration-dotted"><MapPin size={16} className="text-red-500 mt-1 flex-shrink-0" />{selectedDriver.address || 'N/A'}</p>
+                                                {/* Changed selectedDriver.proof to selectedDriver.proofImage */}
+                                                {selectedDriver.proofImage ? (
+                                                    <a
+                                                        href={selectedDriver.proofImage.startsWith('http') ? selectedDriver.proofImage : `${API_BASE_URL}/${selectedDriver.proofImage}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-[11px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-2"
+                                                    >
+                                                        <ExternalLink size={14} /> View Uploaded Document
+                                                    </a>
+                                                ) : (
+                                                    <p className="text-[10px] font-bold text-slate-400 flex items-center gap-3"><FileText size={16} className="text-slate-300 flex-shrink-0" />No proof document</p>
+                                                )}
                                             </div>
                                         )}
                                     </div>
@@ -577,8 +578,7 @@ const DriversList = ({ vendorId, title = "Driver Management", refreshTrigger = 0
                                         <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                                     ) : (
                                         <>
-                                            <Check size={18} />
-                                            Update Driver Profile
+                                            <Check size={18} /> Update Driver Profile
                                         </>
                                     )}
                                 </button>

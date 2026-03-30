@@ -88,7 +88,12 @@ export const AuthProvider = ({ children }) => {
       console.error("Logout error:", err);
     }
 
-    // ❌ removed localStorage + document.cookie (not needed)
+    // Clear all potential cookies manually as well
+    const cookieOptions = "path=/; max-age=0; SameSite=Lax";
+    document.cookie = `access_token=; ${cookieOptions}`;
+    document.cookie = `refresh_token=; ${cookieOptions}`;
+    document.cookie = `accessToken=; ${cookieOptions}`;
+    document.cookie = `refreshToken=; ${cookieOptions}`;
 
     setUser(null);
     setIsAuthenticated(false);

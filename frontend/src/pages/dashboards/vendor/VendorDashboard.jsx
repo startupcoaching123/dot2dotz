@@ -178,7 +178,7 @@ const VendorDashboard = () => {
                         }
                     }
                 }
-            } catch(e) {}
+            } catch (e) { }
             newStats.routes = routesCount;
 
             try {

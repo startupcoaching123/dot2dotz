@@ -43,17 +43,17 @@ const ClientOwnerDashboard = () => {
               Live Enterprise Operations • {user?.companyName || 'Corporate Client'}
             </p>
           </div>
-          
+
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
             <div className="relative w-full sm:w-64">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-              <input 
-                placeholder="Track Shipment ID..." 
+              <input
+                placeholder="Track Shipment ID..."
                 className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors"
               />
             </div>
-            <Link 
-              to="/dashboard/client/new" 
+            <Link
+              to="/dashboard/client/new"
               className="flex w-full sm:w-auto justify-center items-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-lg font-medium text-sm hover:bg-blue-700 transition-colors shadow-sm whitespace-nowrap"
             >
               <Plus size={18} />
@@ -85,7 +85,7 @@ const ClientOwnerDashboard = () => {
 
               <div className="space-y-4">
                 {recentShipments.map((shipment) => (
-                  <div 
+                  <div
                     key={shipment.id}
                     className="p-4 bg-white rounded-lg border border-slate-200 hover:border-blue-200 hover:shadow-sm transition-all cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4"
                   >
@@ -113,11 +113,10 @@ const ClientOwnerDashboard = () => {
                       </div>
 
                       <div className="flex items-center gap-4">
-                        <span className={`px-2.5 py-1 rounded-md text-xs font-medium border ${
-                          shipment.status === 'Delivered' ? 'bg-green-50 text-green-700 border-green-200' : 
-                          shipment.status === 'Delayed' ? 'bg-red-50 text-red-700 border-red-200' : 
-                          'bg-blue-50 text-blue-700 border-blue-200'
-                        }`}>
+                        <span className={`px-2.5 py-1 rounded-md text-xs font-medium border ${shipment.status === 'Delivered' ? 'bg-green-50 text-green-700 border-green-200' :
+                            shipment.status === 'Delayed' ? 'bg-red-50 text-red-700 border-red-200' :
+                              'bg-blue-50 text-blue-700 border-blue-200'
+                          }`}>
                           {shipment.status}
                         </span>
                         <button className="w-8 h-8 rounded-lg border border-slate-200 text-slate-400 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-colors flex items-center justify-center hidden sm:flex">
@@ -134,7 +133,7 @@ const ClientOwnerDashboard = () => {
                           <p className="text-xs font-medium text-blue-600">{shipment.progress}%</p>
                         </div>
                         <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                          <div 
+                          <div
                             style={{ width: `${shipment.progress}%` }}
                             className={`h-full rounded-full transition-all duration-500 ${shipment.status === 'Delayed' ? 'bg-orange-500' : 'bg-blue-600'}`}
                           />
@@ -164,23 +163,23 @@ const ClientOwnerDashboard = () => {
             {/* Tracking Support Card */}
             <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
               <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                 <MapPin className="text-blue-600" size={18} />
-                 Terminal Finder
+                <MapPin className="text-blue-600" size={18} />
+                Terminal Finder
               </h3>
               <div className="space-y-3">
-                 <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 hover:border-blue-200 transition-colors cursor-pointer flex justify-between items-center">
-                    <div>
-                      <p className="text-xs text-slate-500 mb-0.5">Closest Terminal</p>
-                      <p className="text-sm font-medium text-slate-900">Navi Mumbai Hub - 4.2 km</p>
-                    </div>
-                 </div>
-                 <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 hover:border-blue-200 transition-colors cursor-pointer flex justify-between items-center">
-                    <div>
-                      <p className="text-xs text-slate-500 mb-0.5">Operational Hours</p>
-                      <p className="text-sm font-medium text-slate-900">24/7 Service Active</p>
-                    </div>
-                 </div>
-                 <button className="w-full py-2 mt-2 text-blue-600 font-medium text-sm hover:underline">Find All Hub Locations</button>
+                <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 hover:border-blue-200 transition-colors cursor-pointer flex justify-between items-center">
+                  <div>
+                    <p className="text-xs text-slate-500 mb-0.5">Closest Terminal</p>
+                    <p className="text-sm font-medium text-slate-900">Navi Mumbai Hub - 4.2 km</p>
+                  </div>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 hover:border-blue-200 transition-colors cursor-pointer flex justify-between items-center">
+                  <div>
+                    <p className="text-xs text-slate-500 mb-0.5">Operational Hours</p>
+                    <p className="text-sm font-medium text-slate-900">24/7 Service Active</p>
+                  </div>
+                </div>
+                <button className="w-full py-2 mt-2 text-blue-600 font-medium text-sm hover:underline">Find All Hub Locations</button>
               </div>
             </div>
           </div>

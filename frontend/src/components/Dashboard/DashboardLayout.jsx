@@ -80,7 +80,7 @@ const DashboardLayout = ({ children, sidebarItems, roleName }) => {
             >
               <Menu size={20} />
             </button>
-            
+
             {/* Minimal Search Bar */}
             <div className="flex-1 max-w-xl hidden sm:flex items-center gap-2.5 bg-gray-50/50 hover:bg-gray-50 px-4 py-2.5 rounded-xl border border-gray-200 focus-within:border-gray-300 focus-within:bg-white focus-within:shadow-sm transition-all group">
               <Search size={18} className="text-gray-400 group-focus-within:text-gray-600 transition-colors" />
